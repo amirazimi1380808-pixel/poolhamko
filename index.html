@@ -142,7 +142,7 @@ body{
     </div>
 </div>
 
-<!-- SIDEBAR (Desktop Left / Mobile Top) -->
+<!-- SIDEBAR -->
 <aside class="w-full lg:w-20 bg-[var(--card-bg)] border-b lg:border-b-0 lg:border-l border-[var(--border-color)] flex lg:flex-col items-center justify-between lg:justify-start py-4 lg:py-6 px-4 lg:px-0 z-10 shrink-0 transition-colors">
     <div class="flex lg:flex-col gap-4 lg:gap-6 w-full lg:px-4 lg:mt-4 items-center">
         <button class="p-3 bg-[var(--hover-bg)] text-[var(--text-main)] rounded-2xl flex justify-center"><i data-lucide="layout-grid" class="w-5 h-5"></i></button>
@@ -155,7 +155,7 @@ body{
     </div>
 </aside>
 
-<!-- MAIN CONTENT (Center) -->
+<!-- MAIN CONTENT -->
 <main class="flex-1 flex flex-col h-full overflow-y-auto px-6 sm:px-10 py-8">
     
     <!-- HEADER -->
@@ -173,10 +173,10 @@ body{
         <div class="flex items-center gap-4">
             <div class="relative hidden sm:block w-64">
                 <i data-lucide="search" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]"></i>
-                <input id="search-input" oninput="renderTransactions()" class="input pl-4 pr-10 rounded-full border-[var(--border-color)] bg-[var(--card-bg)] shadow-sm" placeholder="جستجو...">
+                <input id="search-input" oninput="renderTransactions()" class="input pl-4 pr-10 rounded-full border-[var(--border-color)] bg-[var(--card-bg)] shadow-sm" placeholder="جستجو در عنوان، دسته‌بندی و توضیحات...">
             </div>
 
-            <!-- BELL NOTIFICATION & DROPDOWN -->
+            <!-- BELL NOTIFICATION -->
             <div class="relative">
                 <div class="flex items-center gap-2">
                     <div id="bell-alarm-badge" class="hidden items-center gap-1.5 bg-rose-500 text-white text-[11px] font-black px-3 py-1 rounded-full shadow-md animate-pulse cursor-pointer" onclick="toggleNotificationDropdown()">
@@ -495,9 +495,8 @@ MODALS
             <button onclick="closeGuideModal()" class="text-[var(--text-muted)] hover:text-[var(--text-main)]"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div class="space-y-4 text-sm leading-relaxed text-[var(--text-muted)]">
-            <p><strong class="text-[var(--text-main)]"><i data-lucide="bell" class="inline w-4 h-4 mb-1 text-rose-500"></i> سیستم هشدار «وقتشه ها !»:</strong> هر زمان موعد چک یا طلبی برسد یا گذشته باشد، زنگوله با نشانگر هشدار اعلام آمادگی می‌کند تا هیچ پرداخت یا دریافتی را فراموش نکنید.</p>
-            <p><strong class="text-[var(--text-main)]"><i data-lucide="coffee" class="inline w-4 h-4 mb-1 text-amber-600"></i> قهوه روزانه:</strong> با زدن دکمه `+` و انتخاب گزینه قهوه روزانه، پنجره‌ای برای استعلام و تغییر سریع قیمت باز می‌شود.</p>
-            <p><strong class="text-[var(--text-main)]"><i data-lucide="credit-card" class="inline w-4 h-4 mb-1"></i> مدیریت کارت‌ها:</strong> می‌توانید کارت‌های متعدد تعریف کنید و خرج هر کارت را تفکیک‌شده بررسی کنید.</p>
+            <p><strong class="text-[var(--text-main)]"><i data-lucide="search" class="inline w-4 h-4 mb-1 text-[var(--primary)]"></i> جستجوی پیشرفته با توضیحات:</strong> با نوشتن کلمات کلیدی دلخواه در بخش توضیحات تراکنش‌ها، می‌توانید هر زمان هزینه‌ها یا درآمدهای خود را از طریق نوار جستجوی بالا فوراً پیدا کنید.</p>
+            <p><strong class="text-[var(--text-main)]"><i data-lucide="bell" class="inline w-4 h-4 mb-1 text-rose-500"></i> سیستم هشدار «وقتشه ها !»:</strong> موعد چک‌ها و طلب‌ها به شما یادآوری می‌شود.</p>
             <div class="p-3 bg-red-50 text-red-700 rounded-xl border border-red-100 mt-2">
                 <strong class="flex items-center gap-1"><i data-lucide="heart" class="w-4 h-4 text-red-500 fill-red-500"></i> حمایت:</strong> اگر خوشتون اومد دونیت کنین به خیریه. موفق باشید.
             </div>
@@ -541,7 +540,7 @@ MODALS
     </div>
 </div>
 
-<!-- TRANSACTION MODAL -->
+<!-- TRANSACTION MODAL (با بخش توضیحات) -->
 <div id="transaction-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
     <div class="modal-anim w-full max-w-md clean-card p-6">
         <div class="flex justify-between items-center mb-5">
@@ -555,8 +554,13 @@ MODALS
                 <select id="trx-category" class="input"></select>
                 <select id="trx-account" class="input"></select>
             </div>
-            <input id="trx-title" required class="input" placeholder="شرح تراکنش">
+            <input id="trx-title" required class="input" placeholder="شرح تراکنش (عنوان اصلی)">
             
+            <!-- کادر توضیحات و کلمات کلیدی -->
+            <div>
+                <textarea id="trx-description" rows="2" class="input text-xs" placeholder="توضیحات تکمیلی یا کلمات کلیدی برای جستجو... (مثلاً: مهمانی، پروژه پایتون، قرض)"></textarea>
+            </div>
+
             <div id="default-template-option" class="flex items-center gap-2 p-2 rounded-lg bg-[var(--hover-bg)]">
                 <input type="checkbox" id="set-as-default-template" class="rounded">
                 <label for="set-as-default-template" class="text-xs text-[var(--text-muted)] cursor-pointer">
@@ -1132,6 +1136,7 @@ function submitQuickCoffee() {
         category: 'کافه',
         account: defaultAcc,
         title: defaultTemplate.title || 'قهوه روزانه',
+        description: 'ثبت سریع روزانه',
         date: getTodayISO(),
         time: getCurrentTimeStr()
     };
@@ -1327,6 +1332,7 @@ function openTransactionModal(type='expense', id=null){
         document.getElementById('trx-amount').value = t.amount;
         document.getElementById('trx-account').value = t.account || userCards[0]?.id; 
         document.getElementById('trx-title').value = t.title;
+        document.getElementById('trx-description').value = t.description || '';
         document.getElementById('trx-time').value = t.time || getCurrentTimeStr();
         
         const dObj = parseDate(t.date);
@@ -1339,6 +1345,7 @@ function openTransactionModal(type='expense', id=null){
         document.getElementById('trx-type').value = type; 
         document.getElementById('trx-amount').value = '';
         document.getElementById('trx-title').value = '';
+        document.getElementById('trx-description').value = '';
         document.getElementById('trx-time').value = getCurrentTimeStr();
 
         const now = new Date();
@@ -1365,6 +1372,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
     const category = document.getElementById('trx-category').value;
     const account = document.getElementById('trx-account').value;
     const title = document.getElementById('trx-title').value;
+    const description = document.getElementById('trx-description').value.trim();
 
     if (type === 'expense' && document.getElementById('set-as-default-template').checked) {
         defaultTemplate = { title, amount, category: 'کافه' };
@@ -1372,7 +1380,7 @@ document.getElementById('transaction-form').addEventListener('submit', function(
         showToast('این هزینه به عنوان الگوی پیش‌فرض ذخیره شد ⭐');
     }
 
-    const data = { type, amount, category, account, title, date: finalISODate, time: timeVal };
+    const data = { type, amount, category, account, title, description, date: finalISODate, time: timeVal };
     
     if(id){ 
         const idx = transactions.findIndex(t=>String(t.id)===String(id)); 
@@ -1393,7 +1401,12 @@ function renderTransactions(){
     const dateF = document.getElementById('date-filter').value;
 
     const filtered = transactions.filter(t=>{
-        const matchSearch = !search || t.title.toLowerCase().includes(search) || t.category.toLowerCase().includes(search);
+        // جستجوی پیشرفته در عنوان، دسته‌بندی و توضیحات (Keywords)
+        const matchSearch = !search || 
+            t.title.toLowerCase().includes(search) || 
+            t.category.toLowerCase().includes(search) || 
+            (t.description && t.description.toLowerCase().includes(search));
+
         const matchAcc = acc === 'all' || t.account === acc;
         let matchDate = true; const d = parseDate(t.date); const now = new Date();
         if(dateF === 'today') matchDate = d >= new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1413,19 +1426,21 @@ function renderTransactions(){
         const cardObj = userCards.find(c => c.id === t.account);
         const cardLabel = cardObj ? cardObj.name : 'حساب';
         const timeDisplay = t.time ? ` • ساعت ${toPersianNum(t.time)}` : '';
+        const descDisplay = t.description ? `<p class="text-[9px] text-[var(--text-muted)] italic mt-0.5">💬 ${escapeHTML(t.description)}</p>` : '';
         
         list.innerHTML += `
-            <div class="flex items-center justify-between py-1 group">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-[var(--invert-bg)] text-[var(--invert-text)] flex items-center justify-center cursor-pointer" onclick="openTransactionModal('${t.type}','${t.id}')">
+            <div class="flex items-start justify-between py-2 group border-b border-[var(--border-color)] last:border-0">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[var(--invert-bg)] text-[var(--invert-text)] flex items-center justify-center cursor-pointer shrink-0 mt-0.5" onclick="openTransactionModal('${t.type}','${t.id}')">
                         <i data-lucide="${iconName}" class="w-4 h-4"></i>
                     </div>
                     <div>
                         <p class="font-bold text-[13px] text-[var(--text-main)]">${escapeHTML(t.title)}</p>
                         <p class="text-[10px] text-[var(--text-muted)] font-medium">${toPersianNum(pDate)}${timeDisplay} • ${escapeHTML(t.category)} • <span class="text-[var(--primary)] font-bold">${cardLabel}</span></p>
+                        ${descDisplay}
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 shrink-0">
                     <div class="font-bold text-[13px] text-[var(--text-main)]">${isInc?'':'-'} ${toPersianNum(formatNumber(t.amount))} ت</div>
                     <button onclick="deleteTransaction('${t.id}')" class="text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                 </div>
@@ -1568,10 +1583,10 @@ function restoreJSONBackup(e){
     }; r.readAsText(e.target.files[0]);
 }
 function exportToCSV(){
-    let csv = '\uFEFFعنوان,نوع,مبلغ,دسته‌بندی,کارت/حساب,تاریخ,ساعت\n'; 
+    let csv = '\uFEFFعنوان,توضیحات,نوع,مبلغ,دسته‌بندی,کارت/حساب,تاریخ,ساعت\n'; 
     transactions.forEach(t=>{ 
         const cardObj = userCards.find(c => c.id === t.account);
-        csv += `"${t.title}","${t.type==='income'?'درآمد':'هزینه'}",${t.amount},"${t.category}","${cardObj?cardObj.name:''}",${t.date},"${t.time||''}"\n`; 
+        csv += `"${t.title}","${t.description||''}","${t.type==='income'?'درآمد':'هزینه'}",${t.amount},"${t.category}","${cardObj?cardObj.name:''}",${t.date},"${t.time||''}"\n`; 
     });
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download = `transactions.csv`; a.click();
 }
