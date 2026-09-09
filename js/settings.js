@@ -241,10 +241,15 @@ function applyPrefs(prefs) {
 }
 
 export function exportToCSV(){
+    /* CSV is intentionally plaintext — but when the vault is active the user
+     * must be warned that the export contains readable financial data (#6). */
+    if (vaultExists() && !confirm('هشدار: فایل CSV شامل اطلاعات مالی شما به‌صورت متنِ خوانا (بدون رمزنگاری) است.\nآن را در جای امنی نگه دارید. ادامه می‌دهید؟')) return;
+    // quote-doubling: a '"' inside any field must not break the CSV structure
+    const cell = v => `"${String(v === null || v === undefined ? '' : v).replace(/"/g, '""')}"`;
     let csv = '\uFEFFعنوان,توضیحات,نوع,مبلغ,دسته‌بندی,کارت/حساب,تاریخ,ساعت\n';
     state.transactions.forEach(t=>{
         const cardObj = state.userCards.find(c => c.id === t.account);
-        csv += `"${t.title}","${t.description||''}","${t.type==='income'?'درآمد':'هزینه'}",${t.amount},"${t.category}","${cardObj?cardObj.name:''}",${t.date},"${t.time||''}"\n`;
+        csv += `${cell(t.title)},${cell(t.description||'')},${cell(t.type==='income'?'درآمد':'هزینه')},${Number(t.amount)||0},${cell(t.category)},${cell(cardObj?cardObj.name:'')},${cell(t.date)},${cell(t.time||'')}\n`;
     });
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})); a.download = `transactions.csv`; a.click();
 }

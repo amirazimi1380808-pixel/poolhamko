@@ -14,3 +14,9 @@ export function parseDate(date){
 export function showToast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2200); }
 
 export function escapeHTML(v){ return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* Escape for HTML attribute contexts (event handlers, values) —
+ * covers quotes, which escapeHTML alone does not (finding #5). */
+export function escapeAttr(v){ return String(v === null || v === undefined ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }

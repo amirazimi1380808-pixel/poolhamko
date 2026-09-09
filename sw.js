@@ -8,7 +8,7 @@
  *    by the SW; only static shell assets live in the CacheStorage).
  * Bump CACHE_VERSION on any release so clients update cleanly. */
 
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.1.0';
 const CACHE_NAME = `poolhamko-${CACHE_VERSION}`;
 
 const PRECACHE_ASSETS = [

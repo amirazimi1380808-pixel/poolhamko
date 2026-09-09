@@ -23,8 +23,18 @@ let draggedElement = null;
 function initDragAndDrop() {
     const container = document.getElementById('modular-container');
     const widgets = container.querySelectorAll('.draggable-widget');
-    const savedOrder = JSON.parse(localStorage.getItem('poolham_widget_order'));
-    if (savedOrder && Array.isArray(savedOrder)) {
+    /* Fail-safe parse (finding #4): corrupted widget-order data must never
+     * crash application startup. valid array → restore; missing/invalid →
+     * default order; unexpected type → ignored; broken JSON → reset key. */
+    let savedOrder = null;
+    try {
+        const parsed = JSON.parse(localStorage.getItem('poolham_widget_order'));
+        if (Array.isArray(parsed)) savedOrder = parsed.filter(x => typeof x === 'string');
+        else localStorage.removeItem('poolham_widget_order');
+    } catch (e) {
+        localStorage.removeItem('poolham_widget_order');
+    }
+    if (savedOrder) {
         savedOrder.forEach(id => {
             const el = document.getElementById(id);
             if (el) container.appendChild(el);

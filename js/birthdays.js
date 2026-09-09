@@ -2,7 +2,7 @@
  * Ported 1:1 from the original single-file implementation. */
 
 import { state, saveAndRender } from './storage.js';
-import { parseDate, showToast, escapeHTML } from './utils.js';
+import { parseDate, showToast, escapeHTML, escapeAttr } from './utils.js';
 import { toPersianNum, gregorianToJalali, shamsiMonthNames, getShamsiISO, setShamsiSelectValues } from './jalali-calendar.js';
 
 export function openBirthdayModal(){
@@ -44,7 +44,7 @@ export function renderBirthdays(){
                     <p class="text-xs font-bold text-[var(--text-main)]">${escapeHTML(b.name)}</p>
                     <p class="text-[9px] text-[var(--text-muted)] mt-0.5">${shamsiDateStr} • ${b.diffDays===0?'امروز!':toPersianNum(b.diffDays)+' روز دیگر'} ${b.gift? ' • کادو: '+escapeHTML(b.gift):''}</p>
                 </div>
-                <button onclick="deleteBirthday('${b.id}')" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                <button onclick="deleteBirthday('${escapeAttr(b.id)}')" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
             </div>
         `;
     });

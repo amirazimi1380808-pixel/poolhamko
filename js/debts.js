@@ -2,7 +2,7 @@
  * Ported 1:1 from the original single-file implementation. */
 
 import { state, saveAndRender } from './storage.js';
-import { formatNumber, parseDate, showToast, escapeHTML } from './utils.js';
+import { formatNumber, parseDate, showToast, escapeHTML, escapeAttr } from './utils.js';
 import { toPersianNum, getShamsiISO, setShamsiSelectValues, getCurrentTimeStr } from './jalali-calendar.js';
 
 export function openDebtModal(){
@@ -42,8 +42,8 @@ export function renderDebts(){
                     <p class="text-[10px] text-[var(--text-muted)] mt-0.5">${toPersianNum(pDate)}${timeDisplay} • ${toPersianNum(formatNumber(d.amount))} ت</p>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <button onclick="toggleDebtStatus('${d.id}')" class="text-[10px] px-2 py-1 bg-[var(--card-bg)] text-[var(--text-main)] rounded shadow-sm hover:opacity-80">${d.settled?'لغو':'تسویه'}</button>
-                    <button onclick="deleteDebt('${d.id}')" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="toggleDebtStatus('${escapeAttr(d.id)}')" class="text-[10px] px-2 py-1 bg-[var(--card-bg)] text-[var(--text-main)] rounded shadow-sm hover:opacity-80">${d.settled?'لغو':'تسویه'}</button>
+                    <button onclick="deleteDebt('${escapeAttr(d.id)}')" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                 </div>
             </div>
         `;

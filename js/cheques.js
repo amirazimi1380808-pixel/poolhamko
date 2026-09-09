@@ -2,7 +2,7 @@
  * Ported 1:1 from the original single-file implementation. */
 
 import { state, saveAndRender } from './storage.js';
-import { formatNumber, parseDate, showToast, escapeHTML } from './utils.js';
+import { formatNumber, parseDate, showToast, escapeHTML, escapeAttr } from './utils.js';
 import { toPersianNum, getShamsiISO, setShamsiSelectValues } from './jalali-calendar.js';
 
 export function openChequeModal(){
@@ -40,8 +40,8 @@ export function renderCheques(){
                     <p class="text-[9px] text-[var(--text-muted)] mt-0.5">سررسید: ${toPersianNum(pDate)} • ${toPersianNum(formatNumber(c.amount))} ت</p>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <button onclick="toggleChequeStatus('${c.id}')" class="text-[10px] px-2 py-1 bg-[var(--card-bg)] text-[var(--text-main)] rounded shadow-sm hover:opacity-80">${c.settled?'بازگشت':'تسویه'}</button>
-                    <button onclick="deleteCheque('${c.id}')" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="toggleChequeStatus('${escapeAttr(c.id)}')" class="text-[10px] px-2 py-1 bg-[var(--card-bg)] text-[var(--text-main)] rounded shadow-sm hover:opacity-80">${c.settled?'بازگشت':'تسویه'}</button>
+                    <button onclick="deleteCheque('${escapeAttr(c.id)}')" class="text-[var(--text-muted)] hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                 </div>
             </div>
         `;

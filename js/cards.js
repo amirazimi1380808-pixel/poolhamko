@@ -46,18 +46,28 @@ export function syncCardSelectors() {
     const currTrxVal = trxAcc.value;
     const currAccFilterVal = accFilter.value;
 
-    cardSel.innerHTML = '<option value="all">همه حساب‌ها</option>';
-    chartCardSel.innerHTML = '<option value="all">مجموع همه کارت‌ها</option>';
-    trxAcc.innerHTML = '';
-    accFilter.innerHTML = '<option value="all">همه</option>';
-
-    state.userCards.forEach(c => {
-        const optText = `${c.name} (${c.bank})`;
-        cardSel.innerHTML += `<option value="${c.id}">${optText}</option>`;
-        chartCardSel.innerHTML += `<option value="${c.id}">${optText}</option>`;
-        trxAcc.innerHTML += `<option value="${c.id}">${optText}</option>`;
-        accFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-    });
+    /* Safe DOM APIs (finding #5): card name/bank/id come from the user (and
+     * from restored backup files) — build <option> via createElement/textContent
+     * so no untrusted string is ever interpolated into HTML. */
+    function fillSelect(sel, firstOption, nameOnly = false) {
+        sel.innerHTML = '';
+        if (firstOption) {
+            const opt = document.createElement('option');
+            opt.value = firstOption.value;
+            opt.textContent = firstOption.text;
+            sel.appendChild(opt);
+        }
+        state.userCards.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = nameOnly ? c.name : `${c.name} (${c.bank})`;
+            sel.appendChild(opt);
+        });
+    }
+    fillSelect(cardSel, { value: 'all', text: 'همه حساب‌ها' });
+    fillSelect(chartCardSel, { value: 'all', text: 'مجموع همه کارت‌ها' });
+    fillSelect(trxAcc, null);
+    fillSelect(accFilter, { value: 'all', text: 'همه' }, true);
 
     if ([...cardSel.options].some(o => o.value === currCardVal)) cardSel.value = currCardVal;
     if ([...chartCardSel.options].some(o => o.value === currChartVal)) chartCardSel.value = currChartVal;
@@ -101,7 +111,9 @@ export function updateCardView() {
         if(c) {
             titleEl.textContent = c.name;
             bankEl.textContent = c.bank;
-            cardPanel.classList.add(c.color || 'skin-black');
+            // whitelist: a tampered color string must not land in classList
+            const SAFE_SKINS = ['skin-black', 'skin-blue', 'skin-green', 'skin-purple', 'skin-rose'];
+            cardPanel.classList.add(SAFE_SKINS.includes(c.color) ? c.color : 'skin-black');
             mockNum.textContent = toPersianNum(`**** **** **** ${c.digits}`);
             balEl.textContent = toPersianNum(formatNumber(balances[c.id])) + ' تومان';
             delBtn.classList.remove('hidden');

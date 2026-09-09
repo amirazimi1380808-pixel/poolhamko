@@ -2,7 +2,7 @@
  * Ported 1:1 from the original single-file implementation. */
 
 import { state, categories, saveAndRender } from './storage.js';
-import { formatNumber, getTodayISO, parseDate, showToast, escapeHTML } from './utils.js';
+import { formatNumber, getTodayISO, parseDate, showToast, escapeHTML, escapeAttr } from './utils.js';
 import { toPersianNum, getShamsiISO, setShamsiSelectValues, getCurrentTimeStr, toggleDatePickerMode } from './jalali-calendar.js';
 import { syncCardSelectors } from './cards.js';
 
@@ -135,18 +135,18 @@ export function renderTransactions(){
         list.innerHTML += `
             <div class="flex items-start justify-between py-2 group border-b border-[var(--border-color)] last:border-0">
                 <div class="flex items-start gap-3">
-                    <div class="w-10 h-10 rounded-full bg-[var(--invert-bg)] text-[var(--invert-text)] flex items-center justify-center cursor-pointer shrink-0 mt-0.5" onclick="openTransactionModal('${t.type}','${t.id}')">
+                    <div class="w-10 h-10 rounded-full bg-[var(--invert-bg)] text-[var(--invert-text)] flex items-center justify-center cursor-pointer shrink-0 mt-0.5" onclick="openTransactionModal('${escapeAttr(t.type)}','${escapeAttr(t.id)}')">
                         <i data-lucide="${iconName}" class="w-4 h-4"></i>
                     </div>
                     <div>
                         <p class="font-bold text-[13px] text-[var(--text-main)]">${escapeHTML(t.title)}</p>
-                        <p class="text-[10px] text-[var(--text-muted)] font-medium">${toPersianNum(pDate)}${timeDisplay} • ${escapeHTML(t.category)} • <span class="text-[var(--primary)] font-bold">${cardLabel}</span></p>
+                        <p class="text-[10px] text-[var(--text-muted)] font-medium">${toPersianNum(pDate)}${timeDisplay} • ${escapeHTML(t.category)} • <span class="text-[var(--primary)] font-bold">${escapeHTML(cardLabel)}</span></p>
                         ${descDisplay}
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <div class="font-bold text-[13px] text-[var(--text-main)]">${isInc?'':'-'} ${toPersianNum(formatNumber(t.amount))} ت</div>
-                    <button onclick="deleteTransaction('${t.id}')" class="text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="deleteTransaction('${escapeAttr(t.id)}')" class="text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                 </div>
             </div>
         `;
@@ -173,7 +173,8 @@ export function submitQuickCoffee() {
     }
 
     state.defaultTemplate.amount = enteredPrice;
-    localStorage.setItem('poolham_default_template', JSON.stringify(state.defaultTemplate));
+    /* persisted via saveAndRender() below — never write the sensitive
+     * default template to plaintext localStorage directly */
 
     const defaultAcc = state.userCards[0]?.id;
     const newTrx = {
