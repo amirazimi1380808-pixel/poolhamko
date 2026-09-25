@@ -1,105 +1,95 @@
-/* ─── Poolhamko Service Worker ───
- * Strategy:
- *  - Precache the full application shell (HTML, CSS, JS, font, icons, manifest).
- *  - Cache-first for all precached local assets (they are versioned by cache name).
- *  - Navigation fallback → cached index.html (SPA-style offline reload).
- *  - Versioned cache + activate-time cleanup → no stale app versions stuck.
- *  - No sensitive financial data is ever cached (localStorage is not touched
- *    by the SW; only static shell assets live in the CacheStorage).
- * Bump CACHE_VERSION on any release so clients update cleanly. */
+/* Poolham service worker.
+ *
+ * Goal: the dashboard must open instantly, work with no network at all, and
+ * never show a blank page because a CDN was slow or blocked.
+ *
+ * Strategy
+ *   navigations  -> network-first, cache fallback (so edits to index.html land
+ *                   immediately when online, and still work offline)
+ *   same-origin  -> cache-first, fill on miss
+ *   cross-origin -> untouched (nothing external is loaded any more anyway)
+ */
 
-const CACHE_VERSION = 'v1.1.0';
-const CACHE_NAME = `poolhamko-${CACHE_VERSION}`;
+const VERSION = 'poolham-v1';
 
-const PRECACHE_ASSETS = [
-    './',
-    './index.html',
-    './manifest.json',
-    './css/style.css',
-    './js/app.js',
-    './js/storage.js',
-    './js/secure-storage.js',
-    './js/crypto.js',
-    './js/transactions.js',
-    './js/cards.js',
-    './js/cheques.js',
-    './js/debts.js',
-    './js/birthdays.js',
-    './js/budgets.js',
-    './js/notifications.js',
-    './js/settings.js',
-    './js/ui-render.js',
-    './js/charts.js',
-    './js/jalali-calendar.js',
-    './js/utils.js',
-    './js/icons.js',
-    './vendor/chart.umd.min.js',
-    './assets/fonts/Vazirmatn-Variable.woff2',
-    './assets/icons/icon-192.png',
-    './assets/icons/icon-512.png',
-    './assets/icons/icon-maskable-192.png',
-    './assets/icons/icon-maskable-512.png',
-    './assets/icons/apple-touch-icon.png'
+const CORE = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './vendor/tailwind.js',
+  './vendor/chart.js',
+  './vendor/lucide.js',
+  './vendor/vazirmatn.css',
+  './vendor/fonts/Vazirmatn-Regular.woff2',
+  './vendor/fonts/Vazirmatn-Medium.woff2',
+  './vendor/fonts/Vazirmatn-SemiBold.woff2',
+  './vendor/fonts/Vazirmatn-Bold.woff2',
+  './vendor/fonts/Vazirmatn-Black.woff2',
+  './icons/favicon-16.png',
+  './icons/favicon-32.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png',
+  './icons/apple-touch-icon-152.png',
+  './icons/apple-touch-icon-167.png'
 ];
 
-/* Install: precache everything, activate immediately */
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(PRECACHE_ASSETS))
-            .then(() => self.skipWaiting())
-    );
+  event.waitUntil((async () => {
+    const cache = await caches.open(VERSION);
+    // Deliberately NOT cache.addAll(): that rejects the whole install if a
+    // single URL 404s. One missing icon must not cost us the offline app.
+    await Promise.all(CORE.map((url) =>
+      cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+    ));
+    await self.skipWaiting();
+  })());
 });
 
-/* Activate: delete old caches, take control */
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys()
-            .then(keys => Promise.all(
-                keys.filter(k => k.startsWith('poolhamko-') && k !== CACHE_NAME)
-                    .map(k => caches.delete(k))
-            ))
-            .then(() => self.clients.claim())
-    );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-/* Fetch:
- *  - navigations → cache-first with network fallback + offline shell fallback
- *  - same-origin static assets → cache-first (precached), then network,
- *    then cache put for anything same-origin not yet cached
- *  - cross-origin → network only (there should be none in this app) */
 self.addEventListener('fetch', (event) => {
-    const req = event.request;
-    if (req.method !== 'GET') return;
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-    if (req.mode === 'navigate') {
-        event.respondWith(
-            caches.match('./index.html').then(cached => {
-                const network = fetch(req)
-                    .then(res => {
-                        caches.open(CACHE_NAME).then(c => c.put('./index.html', res.clone()));
-                        return res;
-                    })
-                    .catch(() => cached);
-                return cached || network;
-            })
-        );
-        return;
+  let url;
+  try { url = new URL(req.url); } catch (_) { return; }
+  if (url.origin !== self.location.origin) return;
+
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(req);
+        const cache = await caches.open(VERSION);
+        cache.put('./index.html', fresh.clone());
+        return fresh;
+      } catch (_) {
+        const cache = await caches.open(VERSION);
+        return (await cache.match('./index.html')) || (await cache.match('./')) ||
+               new Response('<h1 dir="rtl">آفلاین هستید</h1>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      }
+    })());
+    return;
+  }
+
+  event.respondWith((async () => {
+    const cache = await caches.open(VERSION);
+    const hit = await cache.match(req);
+    if (hit) return hit;
+    try {
+      const res = await fetch(req);
+      if (res && res.status === 200 && res.type === 'basic') cache.put(req, res.clone());
+      return res;
+    } catch (_) {
+      return new Response('', { status: 504, statusText: 'offline' });
     }
-
-    const url = new URL(req.url);
-    if (url.origin !== self.location.origin) return; // never handle cross-origin
-
-    event.respondWith(
-        caches.match(req).then(cached => {
-            if (cached) return cached;
-            return fetch(req).then(res => {
-                if (res.ok) {
-                    const copy = res.clone();
-                    caches.open(CACHE_NAME).then(c => c.put(req, copy));
-                }
-                return res;
-            }).catch(() => cached);
-        })
-    );
+  })());
 });

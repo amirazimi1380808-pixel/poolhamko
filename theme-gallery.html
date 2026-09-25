@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>گالری تم و UI — پول‌هام</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:#0b0f1a;
+  color:#e8eaf0;
+  min-height:100vh;
+  padding:2rem 1.25rem 4rem;
+}
+body.light{background:#f4f6fb;color:#1a1d26}
+code,pre{direction:ltr;text-align:left}
+h1{font-size:1.5rem;font-weight:900;text-align:center;margin-bottom:.35rem}
+.sub{text-align:center;font-size:.8rem;opacity:.65;margin-bottom:1.75rem;line-height:1.8}
+.toolbar{display:flex;justify-content:center;gap:.6rem;margin-bottom:1.75rem;flex-wrap:wrap}
+.toolbar button{
+  font-family:inherit;font-size:.75rem;font-weight:700;padding:.5rem 1rem;
+  border-radius:999px;border:1px solid rgba(148,163,184,.35);
+  background:rgba(148,163,184,.12);color:inherit;cursor:pointer;
+}
+.toolbar button.on{background:#6366f1;border-color:#6366f1;color:#fff}
+h2.sec{
+  font-size:.95rem;font-weight:800;margin:2rem 0 .9rem;
+  padding-right:.65rem;border-right:3px solid #6366f1;
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.1rem}
+
+.card{
+  border-radius:1.25rem;overflow:hidden;
+  background:#141a28;border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 12px 32px rgba(0,0,0,.35);
+  transition:transform .2s,box-shadow .2s;
+}
+body.light .card{background:#fff;border-color:#e2e8f0;box-shadow:0 8px 24px rgba(15,23,42,.08)}
+.card:hover{transform:translateY(-4px)}
+.hero{height:72px;position:relative}
+.hero .dots{position:absolute;top:10px;left:12px;display:flex;gap:5px}
+.hero .dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.45)}
+.body{padding:1rem 1.1rem 1.15rem}
+.name{font-size:.95rem;font-weight:900;margin-bottom:.15rem}
+.id{font-size:.65rem;opacity:.55;font-family:ui-monospace,monospace;direction:ltr;text-align:right;margin-bottom:.75rem}
+.swatches{display:flex;gap:.4rem;margin-bottom:.85rem}
+.swatches span{
+  width:26px;height:26px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+}
+.mini{
+  border-radius:.9rem;padding:.75rem .85rem;margin-bottom:.8rem;
+  background:rgba(148,163,184,.10);border:1px solid rgba(148,163,184,.15);
+}
+body.light .mini{background:#f8fafc;border-color:#e2e8f0}
+.mini .lbl{font-size:.65rem;opacity:.7;margin-bottom:.2rem}
+.mini .val{font-size:1.25rem;font-weight:900;direction:ltr;text-align:right}
+.bar{height:7px;border-radius:99px;background:rgba(148,163,184,.25);margin-top:.55rem;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.btn{
+  font-family:inherit;font-size:.72rem;font-weight:800;
+  padding:.45rem .9rem;border-radius:.65rem;border:none;color:#fff;cursor:default;
+}
+.chip{
+  font-size:.65rem;font-weight:700;padding:.2rem .55rem;border-radius:999px;
+  background:rgba(148,163,184,.18);opacity:.9;
+}
+.note{font-size:.72rem;line-height:1.7;opacity:.75;margin-top:.65rem}
+.pick{
+  width:100%;margin-top:.85rem;font-family:inherit;font-size:.75rem;font-weight:800;
+  padding:.55rem;border-radius:.7rem;border:1px dashed rgba(148,163,184,.45);
+  background:transparent;color:inherit;cursor:pointer;
+}
+.pick:hover{border-style:solid;background:rgba(99,102,241,.15);border-color:#6366f1}
+
+/* style cards */
+.style-prev{
+  height:130px;position:relative;overflow:hidden;
+  border-bottom:1px solid rgba(148,163,184,.15);
+}
+.sp-window{
+  position:absolute;inset:14px;border-radius:.85rem;
+  display:flex;gap:8px;padding:10px;
+}
+.sp-side{width:36px;border-radius:.55rem;flex-shrink:0}
+.sp-main{flex:1;display:flex;flex-direction:column;gap:7px}
+.sp-line{height:12px;border-radius:6px}
+.sp-tiles{display:flex;gap:6px;flex:1}
+.sp-tile{flex:1;border-radius:.55rem}
+.sp-glow{
+  position:absolute;width:90px;height:90px;border-radius:50%;
+  filter:blur(28px);opacity:.7;pointer-events:none;
+}
+
+.toast{
+  position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#6366f1;color:#fff;font-size:.78rem;font-weight:700;
+  padding:.65rem 1.2rem;border-radius:999px;box-shadow:0 10px 28px rgba(99,102,241,.45);
+  transition:transform .3s cubic-bezier(.16,1,.3,1);z-index:50;opacity:0;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<h1>گالری تم و UI پیشنهادی</h1>
+<p class="sub">هر کارت را ببین؛ اگر پسندیدی شناسه‌اش (<code>id</code>) را بگو تا در <code>index.html</code> اعمال کنم.<br>دکمهٔ بالا حالت روشن/تاریک پیش‌نمایش را عوض می‌کند.</p>
+
+<div class="toolbar">
+  <button id="btn-dark" class="on" onclick="setMode(false)">پس‌زمینه تاریک</button>
+  <button id="btn-light" onclick="setMode(true)">پس‌زمینه روشن</button>
+</div>
+
+<h2 class="sec">‏UI استایل (ظاهر کلی)</h2>
+<div class="grid" id="styles"></div>
+
+<h2 class="sec">تم‌های رنگی فعلی برنامه</h2>
+<div class="grid" id="current"></div>
+
+<h2 class="sec">تم‌های رنگی پیشنهادی جدید</h2>
+<div class="grid" id="proposed"></div>
+
+<div class="toast" id="toast">شناسه کپی شد — بگو کجا اعمال کنم</div>
+
+<script>
+const CURRENT = [
+  { id:'purple', name:'بنفش نئونی', primary:'#8a63f7', right:'#faefe7', accent:'#c4b5fd',
+    grad:'linear-gradient(135deg,#8a63f7,#4c1d95)', note:'تم پیش‌فرض فعلی؛ گرم و شاد.' },
+  { id:'green', name:'سبز زمردی', primary:'#10b981', right:'#e6f9f0', accent:'#6ee7b7',
+    grad:'linear-gradient(135deg,#10b981,#064e3b)', note:'حس رشد و پس‌انداز.' },
+  { id:'blue', name:'آبی یاقوتی', primary:'#4f46e5', right:'#eef2ff', accent:'#93c5fd',
+    grad:'linear-gradient(135deg,#4f46e5,#1e1b4b)', note:'رسمی و مناسب گزارش.' },
+  { id:'rose', name:'رزگلد', primary:'#e11d48', right:'#fff1f2', accent:'#fbcfe8',
+    grad:'linear-gradient(135deg,#e11d48,#4c0519)', note:'گرم و احساسی.' },
+  { id:'amber', name:'طلایی کهربایی', primary:'#d97706', right:'#fef7ee', accent:'#fde68a',
+    grad:'linear-gradient(135deg,#d97706,#451a03)', note:'پیشنهادی فعلی؛ لوکس و گرم.' },
+  { id:'aqua', name:'آکوامارین', primary:'#0891b2', right:'#ecfeff', accent:'#67e8f9',
+    grad:'linear-gradient(135deg,#0891b2,#083344)', note:'اقیانوسی و خنک — اخیراً اضافه شد.' },
+];
+
+const PROPOSED = [
+  { id:'sunset', name:'غروب 🌅', primary:'#f97316', right:'#fff7ed', accent:'#fdba74',
+    grad:'linear-gradient(135deg,#fb923c,#9a3412)', note:'نارنجی ملایم غروب؛ انرژی‌بخش بدون خیره‌کنندگی.' },
+  { id:'lavender', name:'اسطوخودوس 💜', primary:'#a78bfa', right:'#f5f3ff', accent:'#ddd6fe',
+    grad:'linear-gradient(135deg,#a78bfa,#5b21b6)', note:'بنفش پودری، ملایم‌تر از تم بنفش فعلی.' },
+  { id:'forest', name:'جنگل 🌲', primary:'#059669', right:'#ecfdf5', accent:'#6ee7b7',
+    grad:'linear-gradient(135deg,#047857,#064e3b)', note:'سبز تیره و جدی؛ برای حالت تاریک عالی.' },
+  { id:'graphite', name:'گرافیت ⚫', primary:'#64748b', right:'#f1f5f9', accent:'#cbd5e1',
+    grad:'linear-gradient(135deg,#334155,#0f172a)', note:'خاکستری مینیمال؛ داده‌ها می‌درخشند، رنگ حواس را پرت نمی‌کند.' },
+  { id:'royal', name:'سلطنتی 👑', primary:'#1d4ed8', right:'#eff6ff', accent:'#93c5fd',
+    grad:'linear-gradient(135deg,#1e3a8a,#0c1e4a 60%,#b45309)', note:'سرمه‌ای عمیق با لمس طلایی.' },
+  { id:'peach', name:'هلو 🍑', primary:'#f472b6', right:'#fff1f2', accent:'#fbcfe8',
+    grad:'linear-gradient(135deg,#fb7185,#be123c)', note:'میانهٔ رز و کهربا؛ ملایم و دوستانه.' },
+];
+
+const STYLES = [
+  { id:'classic', name:'کلاسیک (فعلی)', note:'کارت‌های مات سفید/تیره، سایهٔ ملایم، بدون بلور.',
+    side:'#e2e8f0', tiles:['#e2e8f0','#e2e8f0','#e2e8f0'], lines:['#cbd5e1','#94a3b8'],
+    bg:'linear-gradient(180deg,#f8fafc,#e2e8f0)', glow:null },
+  { id:'glass', name:'Liquid Glass ✨', note:'بلور پس‌زمینه، لبهٔ شیشه‌ای، گرادیان رنگی متحرک زیر UI.',
+    side:'rgba(255,255,255,.35)', tiles:['rgba(255,255,255,.4)','rgba(255,255,255,.3)','rgba(255,255,255,.35)'],
+    lines:['rgba(255,255,255,.55)','rgba(255,255,255,.4)'],
+    bg:'linear-gradient(135deg,#312e81,#0ea5e9 50%,#f472b6)',
+    glow:'background:radial-gradient(circle,#f472b6,transparent);top:-20px;right:20px' },
+  { id:'wood', name:'چوبی 🪵', note:'شیشه روی بافت چوب بلوط؛ گرم و دست‌ساز.',
+    side:'rgba(255,245,230,.2)', tiles:['rgba(255,245,230,.22)','rgba(255,245,230,.14)','rgba(255,245,230,.18)'],
+    lines:['rgba(255,245,230,.5)','rgba(255,245,230,.35)'],
+    bg:'repeating-linear-gradient(90deg,rgba(38,20,8,.25) 0 2px,transparent 2px 7px),linear-gradient(145deg,#875429,#3a1d0b)',
+    glow:null },
+  { id:'paper', name:'کاغذی 📄 (پیشنهادی)', note:'لبه‌های تیزتر، بافت کاغذی ملایم، سایهٔ کم — حس دفترچهٔ دستی.',
+    side:'#e7e5e4', tiles:['#fafaf9','#f5f5f4','#e7e5e4'], lines:['#d6d3d1','#a8a29e'],
+    bg:'linear-gradient(180deg,#fafaf9,#e7e5e4)',
+    glow:'background:radial-gradient(circle,#fde68a,transparent);bottom:-10px;left:10px;opacity:.45' },
+  { id:'midnight', name:'نیمه‌شب 🌌 (پیشنهادی)', note:'سرمه‌ای عمیق با اکسنت بنفش؛ برای استفادهٔ شبانه.',
+    side:'rgba(99,102,241,.25)', tiles:['rgba(99,102,241,.3)','rgba(56,189,248,.2)','rgba(167,139,250,.25)'],
+    lines:['rgba(196,181,253,.7)','rgba(148,163,184,.5)'],
+    bg:'linear-gradient(160deg,#020617,#1e1b4b 55%,#0f172a)',
+    glow:'background:radial-gradient(circle,#8b5cf6,transparent);top:10px;right:30px' },
+  { id:'aurora', name:'شفق قطبی 🌠 (پیشنهادی)', note:'گرادیان سبز/بنفش زنده زیر شیشه؛ شبیه Liquid Glass با رنگ متفاوت.',
+    side:'rgba(255,255,255,.3)', tiles:['rgba(255,255,255,.38)','rgba(255,255,255,.28)','rgba(255,255,255,.32)'],
+    lines:['rgba(255,255,255,.55)','rgba(255,255,255,.4)'],
+    bg:'linear-gradient(120deg,#064e3b,#0ea5e9 45%,#7c3aed)',
+    glow:'background:radial-gradient(circle,#34d399,transparent);top:-15px;left:40px' },
+];
+
+function setMode(light){
+  document.body.classList.toggle('light', light);
+  document.getElementById('btn-light').classList.toggle('on', light);
+  document.getElementById('btn-dark').classList.toggle('on', !light);
+}
+
+function themeCard(t){
+  return `
+  <div class="card">
+    <div class="hero" style="background:${t.grad}">
+      <div class="dots"><i></i><i></i><i></i></div>
+    </div>
+    <div class="body">
+      <div class="name">${t.name}</div>
+      <div class="id">${t.id}</div>
+      <div class="swatches">
+        <span style="background:${t.primary}"></span>
+        <span style="background:${t.right}"></span>
+        <span style="background:${t.accent}"></span>
+        <span style="background:${t.grad}"></span>
+      </div>
+      <div class="mini">
+        <div class="lbl">موجودی حساب</div>
+        <div class="val" style="color:${t.primary}">۲۴٬۸۵۰٬۰۰۰</div>
+        <div class="bar"><i style="width:68%;background:${t.grad}"></i></div>
+      </div>
+      <div class="row">
+        <span class="btn" style="background:${t.primary}">ثبت هزینه</span>
+        <span class="btn" style="background:${t.accent};color:#111">درآمد</span>
+        <span class="chip">بودجه ۶۸٪</span>
+      </div>
+      <p class="note">${t.note}</p>
+      <button class="pick" onclick="pick('${t.id}','${t.name}')">انتخاب «${t.name}»</button>
+    </div>
+  </div>`;
+}
+
+function styleCard(s){
+  const glow = s.glow ? `<div class="sp-glow" style="${s.glow}"></div>` : '';
+  return `
+  <div class="card">
+    <div class="style-prev" style="background:${s.bg}">
+      ${glow}
+      <div class="sp-window">
+        <div class="sp-side" style="background:${s.side}"></div>
+        <div class="sp-main">
+          <div class="sp-line" style="background:${s.lines[0]};width:55%"></div>
+          <div class="sp-line" style="background:${s.lines[1]};width:35%"></div>
+          <div class="sp-tiles">
+            <div class="sp-tile" style="background:${s.tiles[0]}"></div>
+            <div class="sp-tile" style="background:${s.tiles[1]}"></div>
+            <div class="sp-tile" style="background:${s.tiles[2]}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="name">${s.name}</div>
+      <div class="id">${s.id}</div>
+      <p class="note">${s.note}</p>
+      <button class="pick" onclick="pick('${s.id}','${s.name}')">انتخاب «${s.name}»</button>
+    </div>
+  </div>`;
+}
+
+function pick(id, name){
+  const msg = `«${name}» (${id}) انتخاب شد — در چت بگو: ${id}`;
+  if (navigator.clipboard) navigator.clipboard.writeText(id).catch(()=>{});
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+document.getElementById('styles').innerHTML = STYLES.map(styleCard).join('');
+document.getElementById('current').innerHTML = CURRENT.map(themeCard).join('');
+document.getElementById('proposed').innerHTML = PROPOSED.map(themeCard).join('');
+</script>
+</body>
+</html>
