@@ -232,9 +232,10 @@ async function buildReport(userId) {
     // بودجه‌ها
     const { data: budgetRows } = await supabase.from('budgets')
         .select('category, amount').eq('user_id', userId);
-    if (budgetRows && budgetRows.length) {
+    const activeBudgets = (budgetRows || []).filter(b => Number(b.amount) > 0);
+    if (activeBudgets.length) {
         text += '\n\n🏧 بودجه این ماه:\n';
-        for (const b of budgetRows) {
+        for (const b of activeBudgets) {
             const spent = monthTxs.filter(t => t.type === 'expense' && t.category === b.category)
                 .reduce((s, t) => s + Number(t.amount || 0), 0);
             const left = Number(b.amount) - spent;
@@ -288,12 +289,13 @@ bot.onText(/\/help/, (msg) => {
         `💸 ثبت هزینه:\n«150 هزار بنزین» یا «85000 ناهار»\n\n` +
         `🟢 ثبت درآمد:\n/income 3000000 حقوق\n\n` +
         `📊 گزارش روزانه، مقایسه ماه، بودجه و تحلیل:\n/report\n\n` +
-        `🏧 وضعیت بودجه‌ها:\n/budget\n\n` +
+        `🏧 وضعیت بودجه:\n/budget\n💳 تعیین بودجهٔ یک دسته:\n/budget غذا 3000 هزار\n\n` +
         `🔍 جست‌وجو در تراکنش‌ها:\n/search قهوه\n\n` +
         `🗑 لیست تراکنش‌ها برای حذف:\n/list\n\n` +
-        `⏰ ثبت یادآور (چک/قسط):\n/remind 5000000 قسط ماشین 1404/08/15\n\n` +
+        `⏰ ثبت یادآور (چک/قسط):\n/remind 5000000 قسط ماشین 1404/08/15\n` +
+        `📋 لیست یادآورها و تسویه:\n/reminders\n\n` +
         `📷 عکس فاکتور بفرست (با متن مبلغ) تا ثبت شود.\n\n` +
-        `🤖 هر شب ساعت ۹ گزارش شبانه می‌گیری 🌙`);
+        `🌙 هر شب ساعت ۲۱ گزارش شبانه می‌گیری و ساعت ۹ صبح یادآورهات را یادآوری می‌کنم.`);
 });
 
 bot.onText(/\/report/, async (msg) => {
@@ -301,25 +303,48 @@ bot.onText(/\/report/, async (msg) => {
     await sendReport(msg.chat.id, userId);
 });
 
-bot.onText(/\/budget/, async (msg) => {
-    const userId = await ensureUser(msg);
+async function budgetStatusText(userId) {
     const { data } = await supabase.from('budgets').select('category, amount').eq('user_id', userId);
-    if (!data || !data.length) {
-        bot.sendMessage(msg.chat.id, '🏧 هنوز بودجه‌ای ثبت نشده.\nاز داخل اپلیکیشن ← بودجه‌بندی، مبلغ هر دسته را مشخص کن تا اینجا هم نمایش داده شود.');
-        return;
-    }
+    const rows = (data || []).filter(b => Number(b.amount) > 0);
+    if (!rows.length) return null;
     const monthKey = jalaliMonthKey(0);
     const { data: txs } = await supabase.from('transactions')
         .select('category, amount, type').eq('user_id', userId).like('date', monthKey + '%');
     let text = '🏧 وضعیت بودجه این ماه:\n\n';
-    data.forEach(b => {
+    rows.forEach(b => {
         const spent = (txs || []).filter(t => t.type === 'expense' && t.category === b.category)
             .reduce((s, t) => s + Number(t.amount || 0), 0);
         const pct = Number(b.amount) ? Math.min(999, Math.round((spent / Number(b.amount)) * 100)) : 0;
-        const bar = '█'.repeat(Math.min(10, Math.round(pct / 10))) + '░'.repeat(10 - Math.min(10, Math.round(pct / 10)));
+        const filled = Math.min(10, Math.round(pct / 10));
+        const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
         text += `${pct > 100 ? '❌' : '✅'} ${b.category}\n   ${bar} ${fa(pct)}٪ (${fa(spent)} از ${fa(b.amount)})\n`;
     });
-    bot.sendMessage(msg.chat.id, text);
+    return text;
+}
+
+bot.onText(/\/budget(?:\s+(.+))?/, async (msg, match) => {
+    const userId = await ensureUser(msg);
+    const chatId = msg.chat.id;
+    const rest = (match && match[1] || '').trim();
+
+    if (rest) {
+        const m = rest.match(/^(.+?)\s+(\d+)\s*(هزار|تومن|تومان)?$/);
+        if (!m) {
+            bot.sendMessage(chatId, '🏧 مثال:\n/budget غذا 3000 هزار\nیا: /budget کافه 1000000\n\nبرای دیدن وضعیت، بدون آرگومان بزن: /budget');
+            return;
+        }
+        let amount = parseInt(m[2]);
+        if ((m[3] || '').includes('هزار')) amount *= 1000;
+        const category = m[1].trim();
+        const { error } = await supabase.from('budgets')
+            .upsert({ user_id: userId, category, amount }, { onConflict: 'user_id,category' });
+        if (error) { bot.sendMessage(chatId, '❌ خطا: ' + error.message); return; }
+        bot.sendMessage(chatId, `🏧 بودجه «${category}» روی ${fa(amount)} تومان تنظیم شد.\nبرای دیدن نوار پیشرفت: /budget`);
+        return;
+    }
+
+    const text = await budgetStatusText(userId);
+    bot.sendMessage(chatId, text || '🏧 هنوز بودجه‌ای ثبت نشده.\nمثال: /budget غذا 3000 هزار\nیا از داخل اپ ← بودجه‌بندی.');
 });
 
 bot.onText(/\/search(?:\s+(.+))?/, async (msg, match) => {
@@ -354,25 +379,58 @@ bot.onText(/\/income(?:\s+(.+))?/, async (msg, match) => {
     await txConfirmMsg(msg.chat.id, userId, { title, amount, type: 'income', category, txId: r.txId });
 });
 
-bot.onText(/\/remind(?:\s+(.+))?/, async (msg, match) => {
+bot.onText(/\/list/, async (msg) => {
     const userId = await ensureUser(msg);
-    const rest = (match && match[1] || '').trim();
-    const m = rest.match(/^(\d+)\s+(.+?)\s+(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (!m) { bot.sendMessage(msg.chat.id, '⏰ مثال: /remind 5000000 قسط ماشین 1404/08/15'); return; }
-    const amount = parseInt(m[1]);
-    const title = m[2].trim();
-    const due = `${m[3]}-${pad(m[4])}-${pad(m[5])}`;
+    await showTransactionList(msg.chat.id, userId);
+});
+
+/* ===================== یادآورها: لیست / ثبت / تسویه ===================== */
+async function showReminders(chatId, userId) {
+    const todayStr = todayJalaliStr();
+    const { data, error } = await supabase.from('reminders')
+        .select('*').eq('user_id', userId).eq('settled', false)
+        .order('due_date', { ascending: true }).limit(12);
+    if (error || !data || !data.length) {
+        await bot.sendMessage(chatId, '⏰ یادآور فعالی نداری.\nمثال:\n/remind 5000000 قسط ماشین 1404/08/15');
+        return;
+    }
+    let text = '⏰ یادآورهای فعال (چک / قسط):\n\n';
+    const kb = [];
+    data.forEach(r => {
+        const overdue = String(r.due_date) < todayStr;
+        text += `${overdue ? '🔴' : '🟡'} ${r.title}${r.amount ? ` — ${fa(r.amount)} تومان` : ''} (${r.due_date.replace(/-/g, '/')})${overdue ? ' سررسید گذشته!' : ''}\n`;
+        kb.push([
+            { text: `✅ تسویه: ${r.title}`, callback_data: `settle:${r.id}` },
+            { text: '− حذف', callback_data: `rmdel:${r.id}` }
+        ]);
+    });
+    await bot.sendMessage(chatId, text, { reply_markup: { inline_keyboard: kb } });
+}
+
+async function createReminder(userId, chatId, rest) {
+    const m = rest.match(/^(\d+)\s*(هزار|تومن|تومان|ریال)?\s+(.+?)\s+(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (!m) {
+        bot.sendMessage(chatId, '⏰ مثال:\n/remind 5000000 قسط ماشین 1404/08/15\nیا: /remind 5000 هزار قسط ماشین 1404/08/15\n\nبرای دیدن یادآورها: /reminders');
+        return;
+    }
+    let amount = parseInt(m[1]);
+    if ((m[2] || '').includes('هزار')) amount *= 1000;
+    if (m[2] === 'ریال') amount = Math.round(amount / 10);
+    const title = m[3].trim();
+    const due = `${m[4]}-${pad(m[5])}-${pad(m[6])}`;
     const id = 'rm-' + Date.now();
     const { error } = await supabase.from('reminders').insert([{
         id, user_id: userId, title, amount, due_date: due, kind: 'cheque', settled: false
     }]);
-    if (error) { bot.sendMessage(msg.chat.id, '❌ خطا: ' + error.message); return; }
-    bot.sendMessage(msg.chat.id, `⏰ یادآور ثبت شد:\n📌 ${title} — ${fa(amount)} تومان\n📅 سررسید: ${due.replace(/-/g, '/')}\n\nتا سررسید بهت یادآوری می‌شود.`);
-});
+    if (error) { bot.sendMessage(chatId, '❌ خطا: ' + error.message); return; }
+    bot.sendMessage(chatId, `⏰ یادآور ثبت شد:\n📌 ${title} — ${fa(amount)} تومان\n📅 سررسید: ${due.replace(/-/g, '/')}\n\nتا سررسید بهت یادآوری می‌شود.\nلیست همه: /reminders`);
+}
 
-bot.onText(/\/list/, async (msg) => {
+bot.onText(/^\/remind(?:ers?)?\s*(.*)$/i, async (msg, match) => {
     const userId = await ensureUser(msg);
-    await showTransactionList(msg.chat.id, userId);
+    const rest = (match[1] || '').trim();
+    if (!rest) { await showReminders(msg.chat.id, userId); return; }
+    await createReminder(userId, msg.chat.id, rest);
 });
 
 /* ===================== پیام متنی (ثبت سریع) ===================== */
@@ -443,14 +501,35 @@ bot.on('callback_query', async (query) => {
     }
     if (data === 'budget') {
         bot.answerCallbackQuery(query.id);
-        // اجرای منطق /budget با ساخت پیام
-        const { data: bud } = await supabase.from('budgets').select('category, amount').eq('user_id', userId);
-        if (!bud || !bud.length) {
-            bot.sendMessage(chatId, '🏧 هنوز بودجه‌ای ثبت نشده. از داخل اپ ← بودجه‌بندی مشخص کن.');
-        } else {
-            bot.sendMessage(chatId, '📊 گزارش کامل بودجه با /budget ببین یا /report بزن.');
-            // همان گزارش را بفرست
-            await bot.sendMessage(chatId, await buildReport(userId));
+        const text = await budgetStatusText(userId);
+        await bot.sendMessage(chatId, text || '🏧 هنوز بودجه‌ای ثبت نشده.\nمثال: /budget غذا 3000 هزار');
+        return;
+    }
+
+    if (data.startsWith('settle:')) {
+        const remId = data.slice(7);
+        const { error } = await supabase.from('reminders')
+            .update({ settled: true }).eq('id', remId).eq('user_id', userId);
+        bot.answerCallbackQuery(query.id, { text: error ? '❌ خطا' : '✅ تسویه شد' });
+        if (!error) {
+            await bot.editMessageText('✅ یادآور تسویه شد. لیست به‌روز:', {
+                chat_id: chatId, message_id: query.message.message_id
+            });
+            await showReminders(chatId, userId);
+        }
+        return;
+    }
+
+    if (data.startsWith('rmdel:')) {
+        const remId = data.slice(6);
+        const { error } = await supabase.from('reminders')
+            .delete().eq('id', remId).eq('user_id', userId);
+        bot.answerCallbackQuery(query.id, { text: error ? '❌ خطا' : '✅ حذف شد' });
+        if (!error) {
+            await bot.editMessageText('🗑 یادآور حذف شد. لیست به‌روز:', {
+                chat_id: chatId, message_id: query.message.message_id
+            });
+            await showReminders(chatId, userId);
         }
         return;
     }

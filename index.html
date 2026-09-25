@@ -3735,7 +3735,7 @@ function renderTransactions(animate = true){
                         <i data-lucide="${iconName}" class="w-4 h-4"></i>
                     </div>
                     <div>
-                        <p class="font-bold text-[13px] text-[var(--text-main)]">${escapeHTML(t.title)}</p>
+                        <p class="font-bold text-[13px] text-[var(--text-main)]">${escapeHTML(t.title)}${t.photoFileId ? ' <span title="عکس فاکتور در تلگرام" class="text-[10px]">📷</span>' : ''}</p>
                         <p class="text-[10px] text-[var(--text-muted)] font-medium">${toPersianNum(pDate)}${timeDisplay} • ${escapeHTML(t.category || '')} • <span class="text-[var(--primary)] font-bold">${cardLabel}</span>${whereDisplay}</p>
                         ${descDisplay}
                     </div>
@@ -4755,7 +4755,7 @@ function openBudgetModal(){
     requestAnimationFrame(refreshScrollFade);
 }
 function closeBudgetModal(){ document.getElementById('budget-modal').classList.replace('flex','hidden'); }
-function saveBudgets(){ categories.expense.forEach(cat=>{ budgets[cat.name] = Number(document.getElementById(`bgt-${cat.id}`).value) || 0; }); localStorage.setItem('poolham_budgets', JSON.stringify(budgets)); closeBudgetModal(); renderUI(); }
+function saveBudgets(){ categories.expense.forEach(cat=>{ budgets[cat.name] = Number(document.getElementById(`bgt-${cat.id}`).value) || 0; }); localStorage.setItem('poolham_budgets', JSON.stringify(budgets)); closeBudgetModal(); saveAndRender(); }
 
 /* SETTINGS & EXPORT */
 function openSettingsModal(){
@@ -5061,7 +5061,8 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
                         transactions.push({
                             id: t.id, title: t.title, amount: Number(t.amount),
                             type: t.type, category: t.category, date: t.date,
-                            account: t.account_id, toAccount: t.to_account_id
+                            account: t.account_id, toAccount: t.to_account_id,
+                            photoFileId: t.photo_file_id || null
                         });
                         changed = true;
                     }
@@ -5094,6 +5095,54 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
             }
         }).catch(()=>{});
 
+        // 2b. دانلود بودجه ابری (تنظیم‌شده در ربات یا دستگاه دیگر)
+        supabaseCloud.from('budgets').select('category, amount').eq('user_id', tgUserId)
+        .then(({data}) => {
+            if (data && data.length) {
+                let changed = false;
+                data.forEach(b => {
+                    if (budgets[b.category] !== Number(b.amount)) {
+                        budgets[b.category] = Number(b.amount);
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    localStorage.setItem('poolham_budgets', JSON.stringify(budgets));
+                    showToast('بودجه از تلگرام همگام شد 🏧');
+                }
+            }
+        }).catch(()=>{});
+
+        // 2c. دانلود یادآورها (چک/قسط) از ابر → بخش چک‌های اپ
+        supabaseCloud.from('reminders').select('*').eq('user_id', tgUserId).eq('kind', 'cheque')
+        .then(({data}) => {
+            if (data && data.length) {
+                let changed = false;
+                data.forEach(r => {
+                    const local = cheques.find(c => String(c.id) === String(r.id));
+                    if (local) {
+                        if (local.settled !== !!r.settled) { local.settled = !!r.settled; changed = true; }
+                    } else {
+                        cheques.push({
+                            id: r.id,
+                            type: (r.title && /قسط|وام|اقساط/.test(r.title)) ? 'installment' : 'cheque_pay',
+                            amount: Number(r.amount || 0),
+                            title: r.title,
+                            date: r.due_date,
+                            target: '',
+                            settled: !!r.settled
+                        });
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    localStorage.setItem('poolham_cheques', JSON.stringify(cheques));
+                    if (typeof renderCheques === 'function') renderCheques();
+                    showToast('یادآورهای تلگرام به چک‌ها اضافه شد ⏰');
+                }
+            }
+        }).catch(()=>{});
+
         // 3. ذخیره در ابر هنگام ثبت (تراکنش + بودجه + چک + دسته‌ها)
         const origSave = saveAndRender;
         window.saveAndRender = function() {
@@ -5109,10 +5158,9 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
             }));
             if (batch.length) supabaseCloud.from('transactions').upsert(batch).then();
 
-            // بودجه‌ها
+            // بودجه‌ها (صفر هم ارسال می‌شود تا حذف بودجه در ابر هم اعمال شود)
             const budgetRows = Object.entries(budgets)
-                .filter(([, v]) => Number(v) > 0)
-                .map(([category, amount]) => ({ user_id: tgUserId, category, amount: Number(amount) }));
+                .map(([category, amount]) => ({ user_id: tgUserId, category, amount: Number(amount) || 0 }));
             if (budgetRows.length) supabaseCloud.from('budgets').upsert(budgetRows, { onConflict: 'user_id,category' }).then();
 
             // چک‌ها / اقساط → یادآورها
