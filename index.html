@@ -3679,7 +3679,7 @@ function renderTransactions(animate = true){
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <div class="font-bold text-[13px] ${isTr ? 'text-teal-600' : 'text-[var(--text-main)]'} tnum">${isTr ? '' : (isInc ? '' : '- ')}${toPersianNum(formatNumber(t.amount))} ت</div>
-                    <button onclick="deleteTransaction('${t.id}')" class="row-del text-[var(--text-muted)] hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                    <button onclick="deleteTransaction('${t.id}')" class="row-del w-5 h-5 flex items-center justify-center border-2 border-red-500 text-red-500 rounded-full bg-red-500/10 hover:bg-red-500 hover:text-white opacity-0 group-hover:opacity-100 transition shrink-0" title="حذف"><span class="text-xs font-black leading-none -mt-0.5">−</span></button>
                 </div>
             </div>
         `;
