@@ -623,6 +623,72 @@ body.midnight-ui .ui-style-opt.active {
     box-shadow: 0 0 0 3px rgba(139, 92, 246, .30);
 }
 
+/* ==========================================================================
+   GALAXY UI — کهکشانی: تم شیشه‌ای با پس‌زمینه کهکشان و سیاره‌های متحرک
+   ========================================================================== */
+body.galaxy-ui {
+    --card-bg:        rgba(255, 255, 255, .45) !important;
+    --hover-bg:       rgba(255, 255, 255, .30) !important;
+    --input-bg:       rgba(255, 255, 255, .40) !important;
+    --border-color:   rgba(255, 255, 255, .55) !important;
+    --glass-blur:     20px;
+    --glass-brd:      rgba(255, 255, 255, .60);
+    --glass-hi:       rgba(255, 255, 255, .85);
+    --glass-shadow:   0 16px 40px rgba(76, 29, 149, .15), 0 2px 10px rgba(76, 29, 149, .10);
+    --bg-main:        #f3e8ff !important;
+    --bg-right:       #faf5ff !important;
+    --text-main:      #4c1d95 !important;
+    --text-muted:     #7e22ce !important;
+}
+body.galaxy-ui.dark-theme {
+    --card-bg:        rgba(15, 10, 30, .65) !important;
+    --hover-bg:       rgba(255, 255, 255, .08) !important;
+    --input-bg:       rgba(20, 15, 40, .60) !important;
+    --border-color:   rgba(255, 255, 255, .15) !important;
+    --glass-brd:      rgba(255, 255, 255, .18);
+    --glass-hi:       rgba(255, 255, 255, .15);
+    --glass-shadow:   0 16px 44px rgba(0, 0, 0, .7), 0 2px 10px rgba(0, 0, 0, .5);
+    --bg-main:        #0a0514 !important;
+    --bg-right:       #0d071b !important;
+    --text-main:      #f3e8ff !important;
+    --text-muted:     #a855f7 !important;
+}
+body.galaxy-ui::before {
+    content: ""; position: fixed; inset: -50%; z-index: -1; pointer-events: none;
+    background:
+        radial-gradient(circle at 20% 30%, #fbcfe8 0%, #fbcfe8 2%, transparent 3%),
+        radial-gradient(circle at 80% 70%, #bfdbfe 0%, #bfdbfe 4%, transparent 5%),
+        radial-gradient(circle at 50% 20%, rgba(244,114,182,.4) 0%, transparent 40%),
+        linear-gradient(135deg, #eef2ff 0%, #f3e8ff 50%, #fae8ff 100%) !important;
+    background-size: 200% 200%;
+    animation: galaxyPan 60s ease-in-out infinite alternate !important;
+    filter: none !important;
+}
+body.galaxy-ui.dark-theme::before {
+    background:
+        radial-gradient(circle at 20% 30%, #e879f9 0%, #c026d3 1%, transparent 1.5%),
+        radial-gradient(circle at 80% 70%, #38bdf8 0%, #0284c7 2%, transparent 2.5%),
+        radial-gradient(circle at 60% 15%, #fcd34d 0%, #d97706 0.5%, transparent 1%),
+        radial-gradient(circle at 35% 85%, #34d399 0%, #059669 1.5%, transparent 2%),
+        radial-gradient(circle at 50% 50%, rgba(147,53,234,.25) 0%, transparent 60%),
+        radial-gradient(circle at 10% 90%, rgba(56,189,248,.2) 0%, transparent 50%),
+        linear-gradient(135deg, #020617 0%, #1e1b4b 50%, #0f172a 100%) !important;
+}
+@keyframes galaxyPan {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+body.galaxy-ui aside {
+    background: rgba(255, 255, 255, .3) !important;
+}
+body.galaxy-ui.dark-theme aside {
+    background: rgba(10, 5, 20, .4) !important;
+}
+body.galaxy-ui #glass-toggle-btn.glass-active,
+body.galaxy-ui .ui-style-opt.active {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 40%, transparent);
+}
+
 /* --- glass picker inside the settings modal --------------------------- */
 .ui-style-opt {
     display: flex;
@@ -706,6 +772,22 @@ body.midnight-ui .ui-style-opt.active {
     border: 1px solid rgba(129, 140, 248, .45);
     border-radius: .45rem;
     box-shadow: inset 0 1px 0 rgba(165, 180, 252, .25);
+}
+.swatch-galaxy {
+    background:
+        radial-gradient(circle at 80% 20%, #c026d3 0%, transparent 20%),
+        radial-gradient(circle at 20% 80%, #0284c7 0%, transparent 20%),
+        linear-gradient(135deg, #020617 0%, #1e1b4b 50%, #0f172a 100%);
+    background-size: 150% 150%;
+}
+.swatch-galaxy::after {
+    content: ""; position: absolute; inset: 8px 8px 8px 40%;
+    background: rgba(15, 10, 30, .65);
+    border: 1px solid rgba(255, 255, 255, .15);
+    border-radius: .45rem;
+    backdrop-filter: blur(6px) saturate(160%);
+    -webkit-backdrop-filter: blur(6px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15);
 }
 
 /* --- live Tehran clock ------------------------------------------------- */
@@ -2018,6 +2100,11 @@ MODALS
                     <span class="text-[11px] font-bold text-[var(--text-main)] truncate">نیمه‌شب 🌌</span>
                     <span class="text-[9px] text-[var(--text-muted)] leading-4 truncate">سرمه‌ای و بنفش</span>
                 </button>
+                <button type="button" class="ui-style-opt" data-style="galaxy" onclick="setUIStyle('galaxy')">
+                    <span class="swatch swatch-galaxy"></span>
+                    <span class="text-[11px] font-bold text-[var(--text-main)] truncate">کهکشانی 🚀</span>
+                    <span class="text-[9px] text-[var(--text-muted)] leading-4 truncate">حرکت سیاره‌ها</span>
+                </button>
             </div>
             <p class="text-[10px] text-[var(--text-muted)] leading-5">
                 انتخاب تو ذخیره می‌شود؛ با دکمهٔ کنار نوار کناری هم می‌توانی بین حالت‌ها بچرخی.
@@ -2508,27 +2595,30 @@ function syncThemeColorMeta() {
         m.setAttribute('content', isDarkMode ? '#16130f' : '#f7f3eb');
     } else if (uiStyle === 'midnight') {
         m.setAttribute('content', '#070a16');
+    } else if (uiStyle === 'galaxy') {
+        m.setAttribute('content', isDarkMode ? '#0a0514' : '#f3e8ff');
     } else {
         m.setAttribute('content', isDarkMode ? '#070b14' : '#f7f9fa');
     }
 }
 
 function applyUIStyle(styleKey, skipIcons = false) {
-    uiStyle = ['glass', 'wood', 'paper', 'midnight'].includes(styleKey) ? styleKey : 'classic';
+    uiStyle = ['glass', 'wood', 'paper', 'midnight', 'galaxy'].includes(styleKey) ? styleKey : 'classic';
     localStorage.setItem('poolham_ui_style', uiStyle);
 
-    // چوبی و نیمه‌شب بر پایهٔ لیکویید گلس‌اند (المان‌ها شیشه‌ای روی پس‌زمینهٔ خودشان)
-    document.body.classList.toggle('glass-ui', uiStyle === 'glass' || uiStyle === 'wood' || uiStyle === 'midnight');
+    // چوبی، نیمه‌شب و کهکشانی بر پایهٔ لیکویید گلس‌اند
+    document.body.classList.toggle('glass-ui', uiStyle === 'glass' || uiStyle === 'wood' || uiStyle === 'midnight' || uiStyle === 'galaxy');
     document.body.classList.toggle('wood-ui', uiStyle === 'wood');
     document.body.classList.toggle('paper-ui', uiStyle === 'paper');
     document.body.classList.toggle('midnight-ui', uiStyle === 'midnight');
+    document.body.classList.toggle('galaxy-ui', uiStyle === 'galaxy');
 
     const btn = document.getElementById('glass-toggle-btn');
     if (btn) btn.classList.toggle('glass-active', uiStyle !== 'classic');
 
     const icon = document.getElementById('glass-mode-icon');
     if (icon) {
-        const icons = { wood: 'tree-pine', glass: 'sparkles', paper: 'file-text', midnight: 'moon', classic: 'droplets' };
+        const icons = { wood: 'tree-pine', glass: 'sparkles', paper: 'file-text', midnight: 'moon', galaxy: 'rocket', classic: 'droplets' };
         icon.setAttribute('data-lucide', icons[uiStyle] || 'droplets');
     }
 
@@ -2548,14 +2638,15 @@ function setUIStyle(key) {
         glass: 'حالت شیشه‌ای (Liquid Glass) فعال شد ✨',
         paper: 'حالت کاغذی فعال شد 📄',
         midnight: 'حالت نیمه‌شب فعال شد 🌌',
+        galaxy: 'حالت کهکشانی با سیاره‌های متحرک فعال شد 🚀',
         classic: 'حالت کلاسیک فعال شد'
     };
     showToast(msgs[key] || msgs.classic);
 }
 
 function toggleGlassUI() {
-    // چرخش بین پنج حالت: کلاسیک ← شیشه ← چوب ← کاغذ ← نیمه‌شب ← کلاسیک
-    const order = ['classic', 'glass', 'wood', 'paper', 'midnight'];
+    // چرخش بین شش حالت
+    const order = ['classic', 'glass', 'wood', 'paper', 'midnight', 'galaxy'];
     const i = order.indexOf(uiStyle);
     setUIStyle(order[(i + 1) % order.length]);
 }
@@ -4828,7 +4919,7 @@ function saveAndRender(){
 }
 
 /* INIT */
-/* Deep-link the look: index.html#glass , #dark , #light , #classic , #paper , #midnight , #glass-dark */
+/* Deep-link the look: index.html#glass , #dark , #light , #classic , #paper , #midnight , #galaxy , #glass-dark */
 (function applyHashPrefs(){
     const h = (location.hash || '').toLowerCase();
     if (!h) return;
@@ -4838,6 +4929,7 @@ function saveAndRender(){
     if (h.includes('classic'))   { uiStyle = 'classic';   localStorage.setItem('poolham_ui_style', 'classic'); }
     if (h.includes('paper'))     { uiStyle = 'paper';     localStorage.setItem('poolham_ui_style', 'paper'); }
     if (h.includes('midnight'))  { uiStyle = 'midnight';  localStorage.setItem('poolham_ui_style', 'midnight'); }
+    if (h.includes('galaxy'))    { uiStyle = 'galaxy';    localStorage.setItem('poolham_ui_style', 'galaxy'); }
     if (h.includes('wood'))      { uiStyle = 'wood';      localStorage.setItem('poolham_ui_style', 'wood'); }
 })();
 
