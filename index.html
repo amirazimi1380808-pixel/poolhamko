@@ -4973,5 +4973,79 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
     else if (h === '#coffee') promptCoffeePrice();
 })();
 </script>
+<!-- TELEGRAM & SUPABASE CLOUD SYNC -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = 'https://giqoqohqtkbxjnsapflf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpcW9xb2hxdGtieGpuc2FwZmxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMjY1MzgsImV4cCI6MjEwNTkwMjUzOH0.y0449wZ2xUZw4KtDpOUNhL8cUOCZ03Ms7md1FiMPAw8';
+    const supabaseCloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // Check if we are inside Telegram Mini App
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        tg.expand();
+        const tgUserId = tg.initDataUnsafe.user.id;
+        
+        // 1. Fetch cloud transactions on load
+        supabaseCloud.from('transactions').select('*').eq('user_id', tgUserId).then(({data}) => {
+            if (data && data.length > 0) {
+                let changed = false;
+                let localIds = new Set(transactions.map(t => String(t.id)));
+                
+                data.forEach(t => {
+                    if (!localIds.has(String(t.id))) {
+                        transactions.push({
+                            id: t.id,
+                            title: t.title,
+                            amount: t.amount,
+                            type: t.type,
+                            category: t.category,
+                            date: t.date,
+                            account: t.account_id,
+                            toAccount: t.to_account_id
+                        });
+                        changed = true;
+                    }
+                });
+                
+                if (changed) {
+                    transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    // Call original saveAndRender without triggering infinite loop
+                    localStorage.setItem('poolham_transactions', JSON.stringify(transactions));
+                    renderUI();
+                    showToast('?? ???? ???? ????? ?? ??');
+                }
+            }
+        }).catch(err => console.log('Sync Error:', err));
+
+        // 2. Patch saveAndRender to push to cloud
+        const origSave = saveAndRender;
+        window.saveAndRender = function() {
+            origSave(); // Do local stuff
+            
+            // Push recent to cloud (upsert)
+            const batch = transactions.slice(0, 50).map(t => ({
+                id: String(t.id),
+                user_id: tgUserId,
+                title: t.title,
+                amount: t.amount,
+                type: t.type,
+                category: t.category,
+                date: t.date,
+                account_id: t.account ? String(t.account) : null,
+                to_account_id: t.toAccount ? String(t.toAccount) : null
+            }));
+            supabaseCloud.from('transactions').upsert(batch).then();
+        };
+
+        // 3. Patch deleteTransaction
+        const origDel = deleteTransaction;
+        window.deleteTransaction = function(id) {
+            supabaseCloud.from('transactions').delete().eq('id', String(id)).eq('user_id', tgUserId).then();
+            origDel(id);
+        };
+    }
+</script>
 </body>
 </html>
