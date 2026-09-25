@@ -12,6 +12,51 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // مینی‌اپ لینک (این لینک گیت‌هاب پیج توئه که اپلیکیشن روش سواره)
 const webAppUrl = 'https://amirazimi1380808-pixel.github.io/poolhamko';
 
+// ===== دسته‌بندی‌های هم‌سان با اپلیکیشن =====
+const EXPENSE_CATS = ['کافه', 'خوراک و سوپرمارکت', 'حمل‌ونقل و تاکسی', 'ابزار و نرم‌افزار', 'آموزش و کتاب', 'سلامت و درمان', 'متفرقه'];
+const INCOME_CATS = ['ترید و بازارهای مالی', 'حقوق و دستمزد', 'پروژه و فریلنس', 'سایر درآمدها'];
+
+// حدس دسته از روی متن
+function guessCategory(title) {
+    const t = String(title);
+    const rules = [
+        [/قهوه|کافه|چای|اسپرسو|لاتته|موکا/, 'کافه'],
+        [/بنزین|گاز|ماشین|تاکسی|اتوبوس|بلیط|مترو|اسنپ|پارکینگ|عوارض/, 'حمل‌ونقل و تاکسی'],
+        [/نان|شیر|گوشت|مرغ|میوه|سوپر|مارکت|نانوایی|رستوران|پیتزا|غذا|ناهار|شام|صبحانه|خرید هفتگی/, 'خوراک و سوپرمارکت'],
+        [/نرم|افزار|اپلیکیشن|اشتراک|هاست|دامنه|برنامه|گیم|استیم/, 'ابزار و نرم‌افزار'],
+        [/کتاب|دوره|آموزش|کلاس|دانشگاه|مدرسه|تمرین/, 'آموزش و کتاب'],
+        [/دارو|دکتر|درمان|بیمارستان|دندان|آزمایش|ویزیت/, 'سلامت و درمان'],
+    ];
+    for (const [re, cat] of rules) if (re.test(t)) return cat;
+    return 'متفرقه';
+}
+
+// تشخیص درآمد از متن
+function isIncomeText(text) {
+    return /درآمد|حقوق|فروش|دریافت|سود|پرداخت شد|واریز شد/.test(text);
+}
+
+function guessIncomeCategory(title) {
+    const t = String(title);
+    if (/ترید|بازار|ارز|سهام|بیت|کریپتو|فارکس/.test(t)) return 'ترید و بازارهای مالی';
+    if (/حقوق|دستمزد/.test(t)) return 'حقوق و دستمزد';
+    if (/پروژه|فریلنس|سفارش|پروژه/.test(t)) return 'پروژه و فریلنس';
+    return 'سایر درآمدها';
+}
+
+// ردیف‌های دکمه‌های دسته‌بندی برای ثبت/ویرایش
+function categoryKeyboard(txId, currentCat) {
+    const row = (arr) => arr.map(name => ({
+        text: (name === currentCat ? '✓ ' : '') + name,
+        callback_data: `cat:${txId}:${name}`
+    }));
+    return [
+        row(EXPENSE_CATS.slice(0, 3)),
+        row(EXPENSE_CATS.slice(3, 6)),
+        row([EXPENSE_CATS[6]]),
+    ];
+}
+
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const user = msg.from;
@@ -52,7 +97,7 @@ async function showTransactionList(chatId, userId) {
 
     data.forEach(t => {
         const sign = t.type === 'income' ? '🟢' : '🔴';
-        text += `${sign} ${t.title} — ${Number(t.amount).toLocaleString()} تومان\n`;
+        text += `${sign} ${t.title} — ${Number(t.amount).toLocaleString()} تومان [${t.category || 'بدون دسته'}]\n`;
         keyboard.push([{ text: `− حذف: ${t.title} (${Number(t.amount).toLocaleString()})`, callback_data: `del:${t.id}` }]);
     });
 
@@ -91,6 +136,38 @@ bot.on('callback_query', async (query) => {
                 message_id: query.message.message_id
             });
             await showTransactionList(chatId, userId);
+        }
+    }
+
+    // تغییر دسته‌بندی تراکنش
+    if (data.startsWith('cat:')) {
+        const parts = data.split(':');
+        const txId = parts[1];
+        const catName = parts.slice(2).join(':'); // نام دسته ممکن است دو بخشی باشد
+
+        const { error } = await supabase
+            .from('transactions')
+            .update({ category: catName })
+            .eq('id', txId)
+            .eq('user_id', userId);
+
+        bot.answerCallbackQuery(query.id, { text: error ? '❌ خطا' : `🏷 دسته: ${catName}` });
+        if (error) {
+            console.error('cat error:', error.message);
+        } else {
+            // دکمه‌های پیام را با علامت ✓ جدید به‌روز کن
+            const msgText = query.message.text.replace(/🏷 دسته: .*/, `🏷 دسته: ${catName}`);
+            bot.editMessageText(msgText, {
+                chat_id: chatId,
+                message_id: query.message.message_id,
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: 'مشاهده در اپلیکیشن 📊', web_app: { url: webAppUrl } }],
+                        ...categoryKeyboard(txId, catName),
+                        [{ text: '− حذف این تراکنش', callback_data: `del:${txId}` }]
+                    ]
+                }
+            });
         }
     }
 });
@@ -133,6 +210,10 @@ bot.on('message', async (msg) => {
             if (unit.includes('هزار')) amount *= 1000;
             if (unit === 'ریال') amount /= 10; // تبدیل به تومان
 
+            // تشخیص نوع (درآمد/هزینه) و دسته از روی متن
+            const type = isIncomeText(title) ? 'income' : 'expense';
+            const category = type === 'income' ? guessIncomeCategory(title) : guessCategory(title);
+
             // اول اطمینان از ثبت کاربر، بعد ثبت تراکنش
             const userId = await ensureUser(msg);
 
@@ -147,8 +228,8 @@ bot.on('message', async (msg) => {
                     user_id: userId,
                     title: title,
                     amount: amount,
-                    type: 'expense', // فرض پیش‌فرض بر هزینه
-                    category: 'سایر',
+                    type: type,
+                    category: category,
                     date: today
                 }]);
 
@@ -156,10 +237,12 @@ bot.on('message', async (msg) => {
                 console.error('insert error:', error.message, JSON.stringify(error));
                 bot.sendMessage(chatId, '❌ خطا: ' + error.message);
             } else {
-                bot.sendMessage(chatId, `✅ ثبت شد!\n\n💸 هزینه: ${amount.toLocaleString()} تومان\n📝 بابت: ${title}\n📅 تاریخ: امروز\n\nبرای دیدن آمار دقیق، اپلیکیشن را باز کن.`, {
+                const typeLabel = type === 'income' ? '🟢 درآمد' : '🔴 هزینه';
+                bot.sendMessage(chatId, `✅ ثبت شد!\n\n${typeLabel}: ${amount.toLocaleString()} تومان\n📝 بابت: ${title}\n🏷 دسته: ${category}\n📅 تاریخ: امروز\n\nاگر دسته درست نبود، از دکمه‌های پایین عوضش کن:`, {
                     reply_markup: {
                         inline_keyboard: [
                             [{ text: 'مشاهده در اپلیکیشن 📊', web_app: { url: webAppUrl } }],
+                            ...categoryKeyboard(txId, category),
                             [{ text: '− حذف این تراکنش', callback_data: `del:${txId}` }]
                         ]
                     }
