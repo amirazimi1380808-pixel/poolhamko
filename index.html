@@ -2123,6 +2123,28 @@ MODALS
             <p class="text-[9px] text-[var(--text-muted)] leading-4">
                 داده‌ها فقط در همین مرورگر ذخیره می‌شوند. اگر مرورگر را پاک کنی یا حافظه را خالی کنی، از دست می‌روند — پس هر چند وقت یک‌بار بکاپ بگیر.
             </p>
+
+            <hr class="border-[var(--border-color)]">
+
+            <h4 class="text-xs font-bold text-[var(--text-muted)]">🏷 دسته‌بندی سفارشی</h4>
+            <p class="text-[10px] text-[var(--text-muted)] leading-5 mb-2">دسته دلخواهت را اضافه کن تا هنگام ثبت تراکنش در اپ و ربات تلگرام ظاهر شود.</p>
+            <div class="flex gap-2">
+                <input id="new-cat-input" type="text" class="input text-xs flex-1" placeholder="مثلاً: حیوانات خانگی 🐾">
+                <button type="button" onclick="addCustomCategory()" class="px-4 rounded-xl bg-[var(--invert-bg)] text-[var(--invert-text)] text-xs font-bold shrink-0">افزودن</button>
+            </div>
+            <div id="custom-cats-list" class="flex flex-wrap gap-1.5 mt-2"></div>
+
+            <hr class="border-[var(--border-color)]">
+
+            <h4 class="text-xs font-bold text-[var(--text-muted)]">🔗 اتصال به ربات تلگرام</h4>
+            <div class="text-[11px] text-[var(--text-muted)] leading-6 space-y-1.5">
+                <p>با اتصال تلگرام، <b class="text-[var(--text-main)]">گزارش شبانه 🌙</b> می‌گیری، بدون باز کردن اپ تراکنش ثبت می‌کنی و بودجه و یادآورهایت را هم می‌بینی:</p>
+                <p>۱. ربات را پیدا و Start بزن: <a href="https://t.me/moneybye1bot" target="_blank" class="text-[var(--primary)] font-bold underline">@moneybye1bot</a></p>
+                <p>۲. در ربات روی <b class="text-[var(--text-main)]">«باز کردن اپلیکیشن»</b> بزن تا اپ از داخل تلگرام باز شود — در همین لحظه اتصال انجام می‌شود.</p>
+                <p>۳. از آن به بعد هر تراکنشی که ثبت کنی (در اپ یا ربات) در هر دو جا همگام می‌شود.</p>
+                <p>۴. در ربات: «150 هزار بنزین» بنویس / <b class="text-[var(--text-main)]">/report</b> برای گزارش / <b class="text-[var(--text-main)]">/help</b> برای راهنما.</p>
+            </div>
+            <a href="https://t.me/moneybye1bot" target="_blank" class="block text-center py-2.5 rounded-xl bg-sky-500 text-white text-xs font-bold hover:bg-sky-600 transition mt-2">باز کردن ربات تلگرام 🤖</a>
         </div>
         <div class="flex gap-2 mt-6">
             <button onclick="saveSettings()" class="flex-1 py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-80" style="background-color: var(--primary);">ذخیره تغییرات</button>
@@ -2415,6 +2437,47 @@ let budgets = JSON.parse(localStorage.getItem('poolham_budgets')) || {
 };
 let appPin = localStorage.getItem('poolham_pin') || '';
 let userName = localStorage.getItem('poolham_username') || 'کاربر عزیز';
+
+/* ===== دسته‌بندی‌های سفارشی کاربر ===== */
+let customCats = JSON.parse(localStorage.getItem('poolham_custom_cats')) || [];
+customCats.forEach((name, i) => categories.expense.push({ id: 'custom_' + i, name: name }));
+
+function renderCustomCats() {
+    const box = document.getElementById('custom-cats-list');
+    if (!box) return;
+    if (!customCats.length) { box.innerHTML = '<span class="text-[10px] text-[var(--text-muted)]">دسته سفارشی نداری.</span>'; return; }
+    box.innerHTML = customCats.map((c, i) => `
+        <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-[var(--hover-bg)] border border-[var(--border-color)] text-[var(--text-main)]">
+            ${escapeHTML(c)}
+            <button onclick="removeCustomCategory(${i})" class="text-red-500 hover:text-red-700 font-black leading-none">−</button>
+        </span>`).join('');
+}
+function addCustomCategory() {
+    const inp = document.getElementById('new-cat-input');
+    const name = (inp.value || '').trim();
+    if (!name) { showToast('اسم دسته را بنویس'); return; }
+    if (categories.expense.some(c => c.name === name) || customCats.includes(name)) { showToast('این دسته از قبل هست'); return; }
+    customCats.push(name);
+    localStorage.setItem('poolham_custom_cats', JSON.stringify(customCats));
+    categories.expense.push({ id: 'custom_' + (customCats.length - 1), name: name });
+    inp.value = '';
+    updateCategories('expense');
+    renderCustomCats();
+    saveAndRender();
+    showToast('دسته اضافه شد 🏷');
+}
+function removeCustomCategory(idx) {
+    const name = customCats[idx];
+    if (!confirm(`دسته «${name}» حذف شود؟`)) return;
+    customCats.splice(idx, 1);
+    localStorage.setItem('poolham_custom_cats', JSON.stringify(customCats));
+    // حذف همه دسته‌های سفارشی از لیست و افزودن دوباره با شناسه درست
+    categories.expense = categories.expense.filter(c => !(c.id && String(c.id).startsWith('custom_')));
+    customCats.forEach((n, i) => categories.expense.push({ id: 'custom_' + i, name: n }));
+    updateCategories('expense');
+    renderCustomCats();
+    saveAndRender();
+}
 
 /* THEMES */
 const colorThemes = {
@@ -4702,6 +4765,7 @@ function openSettingsModal(){
     document.getElementById('default-coffee-amount').value = defaultTemplate.amount || 70000;
     applyUIStyle(uiStyle, true);
     renderBackupStatus();
+    renderCustomCats();
     document.getElementById('settings-modal').classList.replace('hidden','flex');
 }
 
@@ -4980,70 +5044,112 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
     const SUPABASE_URL = 'https://giqoqohqtkbxjnsapflf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpcW9xb2hxdGtieGpuc2FwZmxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMjY1MzgsImV4cCI6MjEwNTkwMjUzOH0.y0449wZ2xUZw4KtDpOUNhL8cUOCZ03Ms7md1FiMPAw8';
     const supabaseCloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
+
     // Check if we are inside Telegram Mini App
     const tg = window.Telegram && window.Telegram.WebApp;
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         tg.expand();
         const tgUserId = tg.initDataUnsafe.user.id;
-        
-        // 1. Fetch cloud transactions on load
+
+        // 1. دانلود تراکنش‌های ابری
         supabaseCloud.from('transactions').select('*').eq('user_id', tgUserId).then(({data}) => {
             if (data && data.length > 0) {
                 let changed = false;
                 let localIds = new Set(transactions.map(t => String(t.id)));
-                
                 data.forEach(t => {
                     if (!localIds.has(String(t.id))) {
                         transactions.push({
-                            id: t.id,
-                            title: t.title,
-                            amount: t.amount,
-                            type: t.type,
-                            category: t.category,
-                            date: t.date,
-                            account: t.account_id,
-                            toAccount: t.to_account_id
+                            id: t.id, title: t.title, amount: Number(t.amount),
+                            type: t.type, category: t.category, date: t.date,
+                            account: t.account_id, toAccount: t.to_account_id
                         });
                         changed = true;
                     }
                 });
-                
                 if (changed) {
                     transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    // Call original saveAndRender without triggering infinite loop
                     localStorage.setItem('poolham_transactions', JSON.stringify(transactions));
                     renderUI();
-                    showToast('?? ???? ???? ????? ?? ??');
+                    showToast('با سرور ابری همگام شد ☁️');
                 }
             }
         }).catch(err => console.log('Sync Error:', err));
 
-        // 2. Patch saveAndRender to push to cloud
+        // 2. دانلود دسته‌های سفارشی ابری و ادغام با محلی
+        supabaseCloud.from('custom_categories').select('name').eq('user_id', tgUserId).eq('kind', 'expense')
+        .then(({data}) => {
+            if (data && data.length) {
+                let changed = false;
+                data.forEach(r => {
+                    if (!customCats.includes(r.name)) {
+                        customCats.push(r.name);
+                        categories.expense.push({ id: 'custom_' + (customCats.length - 1), name: r.name });
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    localStorage.setItem('poolham_custom_cats', JSON.stringify(customCats));
+                    updateCategories('expense');
+                }
+            }
+        }).catch(()=>{});
+
+        // 3. ذخیره در ابر هنگام ثبت (تراکنش + بودجه + چک + دسته‌ها)
         const origSave = saveAndRender;
         window.saveAndRender = function() {
-            origSave(); // Do local stuff
-            
-            // Push recent to cloud (upsert)
+            origSave();
+
+            // تراکنش‌ها
             const batch = transactions.slice(0, 50).map(t => ({
-                id: String(t.id),
-                user_id: tgUserId,
-                title: t.title,
-                amount: t.amount,
-                type: t.type,
-                category: t.category,
-                date: t.date,
+                id: String(t.id), user_id: tgUserId,
+                title: t.title, amount: t.amount, type: t.type,
+                category: t.category, date: t.date,
                 account_id: t.account ? String(t.account) : null,
                 to_account_id: t.toAccount ? String(t.toAccount) : null
             }));
-            supabaseCloud.from('transactions').upsert(batch).then();
+            if (batch.length) supabaseCloud.from('transactions').upsert(batch).then();
+
+            // بودجه‌ها
+            const budgetRows = Object.entries(budgets)
+                .filter(([, v]) => Number(v) > 0)
+                .map(([category, amount]) => ({ user_id: tgUserId, category, amount: Number(amount) }));
+            if (budgetRows.length) supabaseCloud.from('budgets').upsert(budgetRows, { onConflict: 'user_id,category' }).then();
+
+            // چک‌ها / اقساط → یادآورها
+            const remRows = cheques.map(c => ({
+                id: String(c.id), user_id: tgUserId,
+                title: c.title, amount: Number(c.amount || 0),
+                due_date: c.date, kind: 'cheque', settled: !!c.settled
+            }));
+            supabaseCloud.from('reminders').upsert(remRows, { onConflict: 'id' }).then();
+
+            // دسته‌های سفارشی
+            if (customCats.length) {
+                const catRows = customCats.map(name => ({ user_id: tgUserId, name, kind: 'expense' }));
+                supabaseCloud.from('custom_categories').upsert(catRows, { onConflict: 'user_id,name,kind' }).then();
+            }
         };
 
-        // 3. Patch deleteTransaction
+        // 4. پچ حذف تراکنش
         const origDel = deleteTransaction;
         window.deleteTransaction = function(id) {
             supabaseCloud.from('transactions').delete().eq('id', String(id)).eq('user_id', tgUserId).then();
             origDel(id);
+        };
+
+        // 5. پچ حذف چک → حذف یادآور
+        const origDelCheque = deleteCheque;
+        window.deleteCheque = function(id) {
+            supabaseCloud.from('reminders').delete().eq('id', String(id)).eq('user_id', tgUserId).then();
+            origDelCheque(id);
+        };
+
+        // 6. پچ حذف دستهٔ سفارشی → حذف از ابر
+        const origRemoveCat = removeCustomCategory;
+        window.removeCustomCategory = function(idx) {
+            const name = customCats[idx];
+            if (name) supabaseCloud.from('custom_categories').delete().eq('user_id', tgUserId).eq('name', name).eq('kind', 'expense').then();
+            origRemoveCat(idx);
         };
     }
 </script>
