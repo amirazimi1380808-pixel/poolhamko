@@ -2659,7 +2659,7 @@ function applyUIStyle(styleKey, skipIcons = false) {
 
     const icon = document.getElementById('glass-mode-icon');
     if (icon) {
-        const icons = { wood: 'tree-pine', glass: 'sparkles', paper: 'file-text', midnight: 'moon', galaxy: 'rocket', classic: 'droplets' };
+        const icons = { wood: 'tree-pine', glass: 'sparkles', paper: 'file-text', midnight: 'moon', galaxy: 'rocket', cyberpunk: 'zap', neumorphism: 'layers', pixel: 'gamepad-2', classic: 'droplets' };
         icon.setAttribute('data-lucide', icons[uiStyle] || 'droplets');
     }
 
@@ -2680,6 +2680,9 @@ function setUIStyle(key) {
         paper: 'حالت کاغذی فعال شد 📄',
         midnight: 'حالت نیمه‌شب فعال شد 🌌',
         galaxy: 'حالت کهکشانی با سیاره‌های متحرک فعال شد 🚀',
+        cyberpunk: 'حالت سایبرپانک نئونی فعال شد 🌃',
+        neumorphism: 'حالت نئومورفیسم فعال شد 🤍',
+        pixel: 'حالت پیکسلی رترو فعال شد 👾',
         classic: 'حالت کلاسیک فعال شد'
     };
     showToast(msgs[key] || msgs.classic);
