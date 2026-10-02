@@ -125,16 +125,17 @@ async function insertTx(userId, { title, amount, type, category, photoFileId }) 
     return { txId };
 }
 
-async function txConfirmMsg(chatId, userId, { title, amount, type, category, txId, photoFileId }) {
-    const typeLabel = type === 'income' ? '🟢 درآمد' : '🔴 هزینه';
+async function txConfirmMsg(chatId, userId, { title, amount, type, category, txId, photoFileId, prefix }) {
+    const typeLabel = type === 'income' ? '🟢 درآمد' : (type === 'transfer' ? '🔄 انتقال' : '🔴 هزینه');
     const kb = [
         [{ text: 'مشاهده در اپلیکیشن 📊', web_app: { url: webAppUrl } }],
-        ...(await categoryKeyboard(txId, category, userId)),
+        ...(type !== 'transfer' ? await categoryKeyboard(txId, category, userId) : []),
         [{ text: '− حذف این تراکنش', callback_data: `del:${txId}` }]
     ];
     const opts = { reply_markup: { inline_keyboard: kb } };
     if (photoFileId) opts.photo = photoFileId;
-    const text = `✅ ثبت شد!\n\n${typeLabel}: ${fa(amount)} تومان\n📝 بابت: ${title}\n🏷 دسته: ${category}\n📅 تاریخ: ${todayJalaliStr().replace(/-/g, '/')}\n\nاگر دسته درست نیست از دکمه‌های پایین عوضش کن:`;
+    const pre = prefix || '✅ ثبت شد!\n\n';
+    const text = `${pre}${typeLabel}: ${fa(amount)} تومان\n📝 بابت: ${title}\n🏷 دسته: ${category}\n📅 تاریخ: ${todayJalaliStr().replace(/-/g, '/')}\n\nاگر دسته درست نیست از دکمه‌های پایین عوضش کن:`;
     if (photoFileId) await bot.sendPhoto(chatId, photoFileId, { caption: text, ...opts });
     else await bot.sendMessage(chatId, text, opts);
 }
@@ -286,11 +287,14 @@ bot.onText(/\/start/, async (msg) => {
 bot.onText(/\/help/, (msg) => {
     bot.sendMessage(msg.chat.id,
         `📖 راهنمای ربات پول‌هام:\n\n` +
-        `💸 ثبت هزینه:\n«150 هزار بنزین» یا «85000 ناهار»\n\n` +
+        `💸 ثبت سریع هزینه:\n«150 هزار بنزین» یا «85000 ناهار»\n\n` +
         `🟢 ثبت درآمد:\n/income 3000000 حقوق\n\n` +
+        `🔄 ثبت انتقال بین حساب‌ها:\n/transfer 500 هزار از ملت به سامان\n\n` +
+        `🏦 خواندن خودکار پیامک بانک:\nپیامک واریز یا برداشت بانک خود را مستقیم برای ربات بفرست یا فوروارد کن!\n\n` +
         `📊 گزارش روزانه، مقایسه ماه، بودجه و تحلیل:\n/report\n\n` +
         `🏧 وضعیت بودجه:\n/budget\n💳 تعیین بودجهٔ یک دسته:\n/budget غذا 3000 هزار\n\n` +
         `🔍 جست‌وجو در تراکنش‌ها:\n/search قهوه\n\n` +
+        `📁 دریافت خروجی اکسل/CSV:\n/export یا /csv\n\n` +
         `🗑 لیست تراکنش‌ها برای حذف:\n/list\n\n` +
         `⏰ ثبت یادآور (چک/قسط):\n/remind 5000000 قسط ماشین 1404/08/15\n` +
         `📋 لیست یادآورها و تسویه:\n/reminders\n\n` +
@@ -433,14 +437,139 @@ bot.onText(/^\/remind(?:ers?)?\s*(.*)$/i, async (msg, match) => {
     await createReminder(userId, msg.chat.id, rest);
 });
 
-/* ===================== پیام متنی (ثبت سریع) ===================== */
+/* ===================== ثبت انتقال وجه ===================== */
+bot.onText(/\/transfer(?:\s+(.+))?/i, async (msg, match) => {
+    const userId = await ensureUser(msg);
+    const chatId = msg.chat.id;
+    const rest = (match && match[1] || '').trim();
+    const m = rest.match(/^(\d+)\s*(هزار|تومن|تومان)?\s*(.*)$/);
+    if (!m) {
+        bot.sendMessage(chatId, '🔄 مثال ثبت انتقال بین حساب‌ها:\n/transfer 500 هزار از ملت به سامان\nیا: /transfer 200000 پس‌انداز');
+        return;
+    }
+    let amount = parseInt(m[1]);
+    if ((m[2] || '').includes('هزار')) amount *= 1000;
+    const title = (m[3] || 'انتقال بین حساب‌ها').trim();
+    const r = await insertTx(userId, { title, amount, type: 'transfer', category: 'انتقال' });
+    if (r.error) { bot.sendMessage(chatId, '❌ خطا: ' + r.error.message); return; }
+    await txConfirmMsg(chatId, userId, { title, amount, type: 'transfer', category: 'انتقال', txId: r.txId });
+});
+
+/* ===================== خروجی اکسل / CSV ===================== */
+bot.onText(/\/(?:export|csv)/i, async (msg) => {
+    const userId = await ensureUser(msg);
+    const chatId = msg.chat.id;
+    const { data: txs, error } = await supabase.from('transactions')
+        .select('*').eq('user_id', userId).order('date', { ascending: false });
+
+    if (error || !txs || !txs.length) {
+        bot.sendMessage(chatId, '📭 تراکنشی برای خروجی گرفتن ثبت نشده است.');
+        return;
+    }
+
+    let csv = '\uFEFF"شناسه","عنوان","نوع","مبلغ (تومان)","دسته‌بندی","تاریخ شمسی"\n';
+    txs.forEach(t => {
+        const typeFa = t.type === 'income' ? 'درآمد' : (t.type === 'transfer' ? 'انتقال' : 'هزینه');
+        csv += `"${t.id}","${(t.title || '').replace(/"/g, '""')}","${typeFa}",${t.amount},"${(t.category || '').replace(/"/g, '""')}","${t.date}"\n`;
+    });
+
+    const buf = Buffer.from(csv, 'utf8');
+    await bot.sendDocument(chatId, buf, {
+        caption: `📊 خروجی اکسل/CSV پول‌هام شامل ${fa(txs.length)} تراکنش`
+    }, {
+        filename: `poolham-${todayJalaliStr()}.csv`,
+        contentType: 'text/csv'
+    });
+});
+
+/* ===================== خواندن هوشمند پیامک بانکی ===================== */
+function tryParseBankSms(raw) {
+    if (!raw || raw.length < 15) return null;
+    const normalized = raw
+        .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+
+    // نشانه‌های پیامک بانک
+    const hasBankKeyword = /واریز|برداشت|خرید|کسر|وجه|کارت|حساب|مانده|موجودی|بانک|شبا|انتقال/.test(normalized);
+    if (!hasBankKeyword) return null;
+
+    const isIncome = /واریز|واریز به|انتقال به|بستانکار|\+/.test(normalized) && !/برداشت|کسر|بدهکار/.test(normalized);
+    const type = isIncome ? 'income' : 'expense';
+
+    const bankList = [
+        'بلو', 'ملت', 'ملی', 'سامان', 'رسالت', 'صادرات', 'تجارت', 'سپه',
+        'پارسیان', 'پاسارگاد', 'کشاورزی', 'آینده', 'شهر', 'مسکن', 'خاورمیانه',
+        'سینا', 'رفاه', 'دی', 'ایران زمین', 'گردشگری', 'پست بانک', 'مهر ایران', 'کارآفرین'
+    ];
+    let detectedBank = '';
+    for (const b of bankList) {
+        if (normalized.includes(b)) {
+            detectedBank = (b === 'بلو') ? 'بلوبانک' : 'بانک ' + b;
+            break;
+        }
+    }
+
+    let amount = 0;
+    let isRial = false;
+    const amountRegexes = [
+        /(?:مبلغ|مبلغ تراکنش|واریز|برداشت|خرید|کسر|وجه)[\s:]*([0-9,.]+)\s*(ریال|تومان|IRR)?/i,
+        /([0-9,.]+)\s*(ریال|تومان|IRR)/i,
+        /([0-9]{4,12})\s*(ریال|تومان)/i
+    ];
+
+    for (const rx of amountRegexes) {
+        const match = normalized.match(rx);
+        if (match && match[1]) {
+            const cleanNum = match[1].replace(/[,.]/g, '');
+            const parsedVal = parseInt(cleanNum, 10);
+            if (!isNaN(parsedVal) && parsedVal > 0) {
+                amount = parsedVal;
+                if (match[2] && (match[2].includes('ریال') || match[2].toUpperCase() === 'IRR')) {
+                    isRial = true;
+                }
+                break;
+            }
+        }
+    }
+
+    if (!amount) return null;
+
+    if (isRial || (amount >= 100000 && amount % 10 === 0 && !normalized.includes('تومان'))) {
+        amount = Math.round(amount / 10);
+    }
+
+    const title = (type === 'income' ? 'واریز' : 'خرید / برداشت') + (detectedBank ? ` (${detectedBank})` : ' بانکی');
+    return { amount, type, title, detectedBank };
+}
+
+/* ===================== پیام متنی (ثبت سریع یا پیامک بانکی) ===================== */
 bot.on('message', async (msg) => {
     if (!msg.text || msg.text.startsWith('/')) return;
     const chatId = msg.chat.id;
     const text = msg.text;
+
+    // ۱. بررسی پیامک بانکی
+    const sms = tryParseBankSms(text);
+    if (sms) {
+        const userId = await ensureUser(msg);
+        const category = sms.type === 'income' ? guessIncomeCategory(sms.title) : guessCategory(sms.title);
+        const r = await insertTx(userId, { title: sms.title, amount: sms.amount, type: sms.type, category });
+        if (r.error) { bot.sendMessage(chatId, '❌ خطا: ' + r.error.message); return; }
+        await txConfirmMsg(chatId, userId, {
+            title: sms.title,
+            amount: sms.amount,
+            type: sms.type,
+            category,
+            txId: r.txId,
+            prefix: '🏦 پیامک بانکی با موفقیت خوانده شد!\n\n'
+        });
+        return;
+    }
+
+    // ۲. ثبت سریع عادی
     const match = text.match(/(\d+)\s*(هزار|تومن|تومان|ریال)?\s+(.+)/);
     if (!match) {
-        bot.sendMessage(chatId, 'متوجه نشدم! 🧐\nمثال: «150 هزار بنزین» یا /help برای راهنما');
+        bot.sendMessage(chatId, 'متوجه نشدم! 🧐\nمثال: «150 هزار بنزین» یا فوروارد پیامک بانک یا /help برای راهنما');
         return;
     }
     let amount = parseInt(match[1]);
