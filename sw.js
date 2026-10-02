@@ -10,7 +10,7 @@
  *   cross-origin -> untouched (nothing external is loaded any more anyway)
  */
 
-const VERSION = 'poolham-v1';
+const VERSION = 'poolham-v2';
 
 const CORE = [
   './',
