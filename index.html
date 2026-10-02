@@ -906,30 +906,15 @@ body.pixel-ui button:active {
    The wood is a radial gradient with many alternating brown stops (reads as
    growth rings) plus a stretched fractal-noise overlay for the fibre, clipped
    to the bezel with feComposite operator="in". */
-.wood-clock {
+.analog-clock {
     width: 78px;
     height: 78px;
     flex: 0 0 auto;
     position: relative;
-    filter: drop-shadow(0 7px 16px rgba(58, 34, 10, .38));
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
 }
-.wood-clock svg { width: 100%; height: 100%; display: block; }
-.wood-clock #wcTime {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1;
-}
-.wood-clock #wcSec {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1;
-    fill: var(--primary) !important;
-    transition: fill .3s;
-}
-.wood-clock #wcSecArc {
-    stroke: var(--primary) !important;
-    transition: stroke .3s;
-}
-@media (max-width: 640px) { .wood-clock { width: 64px; height: 64px; } }
-@media (prefers-reduced-motion: reduce) { .wood-clock #wcSecArc { transition: none; } }
+.analog-clock svg { width: 100%; height: 100%; display: block; }
+@media (max-width: 640px) { .analog-clock { width: 64px; height: 64px; } }
 
 /* ==========================================================================
    MOBILE SHELL FIX
@@ -1077,92 +1062,37 @@ body.glass-ui .tab-btn {
         </div>
 
         <div class="flex items-center flex-wrap justify-end gap-2 sm:gap-4 w-full sm:w-auto">
-            <!-- CIRCULAR DIGITAL CLOCK (wooden) -->
-            <div class="wood-clock" id="wood-clock" title="ساعت به‌روز تهران" data-reveal>
+            <!-- ANALOG CLOCK (theme-synced) -->
+            <div class="analog-clock" id="wood-clock" title="ساعت به‌روز تهران" data-reveal>
                 <svg viewBox="0 0 100 100" role="img" aria-label="ساعت به‌روز تهران">
-                    <defs>
-                        <!-- growth rings: warm oak, alternating light/dark so the
-                             rings actually read at 78px -->
-                        <radialGradient id="wcRings" cx="0.5" cy="0.5" r="0.5">
-                            <stop offset="0"    stop-color="#dcb37e"/>
-                            <stop offset="0.09" stop-color="#b4834a"/>
-                            <stop offset="0.17" stop-color="#d3a76d"/>
-                            <stop offset="0.26" stop-color="#a87a45"/>
-                            <stop offset="0.35" stop-color="#d6ab73"/>
-                            <stop offset="0.44" stop-color="#b07f48"/>
-                            <stop offset="0.53" stop-color="#cda26a"/>
-                            <stop offset="0.62" stop-color="#9d7040"/>
-                            <stop offset="0.72" stop-color="#c99e66"/>
-                            <stop offset="0.82" stop-color="#8d6234"/>
-                            <stop offset="0.92" stop-color="#7a5330"/>
-                            <stop offset="1"    stop-color="#5f3f22"/>
-                        </radialGradient>
-                        <!-- varnish: lit top-left, softly shaded bottom-right -->
-                        <linearGradient id="wcSheen" x1="0.12" y1="0" x2="0.88" y2="1">
-                            <stop offset="0"    stop-color="#ffffff" stop-opacity="0.34"/>
-                            <stop offset="0.40" stop-color="#ffffff" stop-opacity="0.05"/>
-                            <stop offset="0.68" stop-color="#000000" stop-opacity="0.06"/>
-                            <stop offset="1"    stop-color="#000000" stop-opacity="0.26"/>
-                        </linearGradient>
-                        <!-- recessed dark face -->
-                        <radialGradient id="wcFace" cx="0.42" cy="0.34" r="0.85">
-                            <stop offset="0"    stop-color="#3a2919"/>
-                            <stop offset="0.55" stop-color="#22180f"/>
-                            <stop offset="1"    stop-color="#100b06"/>
-                        </radialGradient>
-                        <!-- stretched noise, tinted dark brown, = wood fibre -->
-                        <filter id="wcGrain" x="-5%" y="-5%" width="110%" height="110%">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.55 0.03" numOctaves="4" seed="9" result="n"/>
-                            <feColorMatrix in="n" type="matrix" result="g"
-                                values="0 0 0 0 0.30
-                                        0 0 0 0 0.19
-                                        0 0 0 0 0.08
-                                        0 0 0 0.75 0"/>
-                            <feComponentTransfer in="g" result="g2">
-                                <feFuncA type="table" tableValues="0 0.14 0.52 0.18 0.66 0.10 0.42 0.05"/>
-                            </feComponentTransfer>
-                            <feComposite in="g2" in2="SourceGraphic" operator="in"/>
-                        </filter>
-                    </defs>
-
-                    <!-- wooden body -->
-                    <circle cx="50" cy="50" r="49" fill="url(#wcRings)"/>
-                    <circle cx="50" cy="50" r="49" fill="#6b4520" filter="url(#wcGrain)" opacity="0.55"/>
-                    <circle cx="50" cy="50" r="49" fill="url(#wcSheen)"/>
-                    <circle cx="50" cy="50" r="48.4" fill="none" stroke="#3a2410" stroke-opacity="0.6" stroke-width="1.4"/>
-                    <circle cx="50" cy="50" r="47.4" fill="none" stroke="#f0d3a4" stroke-opacity="0.30" stroke-width="0.7"/>
-
+                    <!-- Clean minimal clock face syncing with theme -->
+                    <circle cx="50" cy="50" r="48" fill="var(--card-bg)" stroke="var(--border-color)" stroke-width="2" />
+                    <circle cx="50" cy="50" r="44" fill="var(--hover-bg)" />
+                    
                     <!-- hour ticks -->
-                    <g stroke="#ffe9c4" stroke-opacity="0.6" stroke-width="1.15" stroke-linecap="round">
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(0 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(30 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(60 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(90 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(120 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(150 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(180 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(210 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(240 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(270 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(300 50 50)"/>
-                        <line x1="50" y1="7" x2="50" y2="10" transform="rotate(330 50 50)"/>
+                    <g stroke="var(--text-muted)" stroke-opacity="0.6" stroke-width="1.5" stroke-linecap="round">
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(0 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(30 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(60 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(90 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(120 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(150 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(180 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(210 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(240 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(270 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(300 50 50)"/>
+                        <line x1="50" y1="8" x2="50" y2="12" transform="rotate(330 50 50)"/>
                     </g>
 
-                    <!-- recessed face -->
-                    <circle cx="50" cy="50" r="35" fill="url(#wcFace)"/>
-                    <circle cx="50" cy="50" r="35" fill="none" stroke="#000000" stroke-opacity="0.75" stroke-width="1.5"/>
-                    <circle cx="50" cy="50" r="34.1" fill="none" stroke="#f0d3a4" stroke-opacity="0.14" stroke-width="0.7"/>
-
-                    <!-- Logo Background inside clock -->
-                    <image href="./icons/icon-192.png" x="25" y="25" width="50" height="50" opacity="0.3" />
-
                     <!-- Analog Hands -->
-                    <line id="wcHourHand" x1="50" y1="50" x2="50" y2="30" stroke="#fbeed6" stroke-width="2.5" stroke-linecap="round" />
-                    <line id="wcMinHand" x1="50" y1="50" x2="50" y2="20" stroke="#d8b184" stroke-width="1.5" stroke-linecap="round" />
-                    <line id="wcSecHand" x1="50" y1="50" x2="50" y2="18" stroke="#f0b429" stroke-width="0.8" stroke-linecap="round" />
+                    <line id="wcHourHand" x1="50" y1="50" x2="50" y2="28" stroke="var(--text-main)" stroke-width="3.5" stroke-linecap="round" />
+                    <line id="wcMinHand" x1="50" y1="50" x2="50" y2="18" stroke="var(--text-main)" stroke-opacity="0.8" stroke-width="2" stroke-linecap="round" />
+                    <line id="wcSecHand" x1="50" y1="50" x2="50" y2="12" stroke="var(--primary)" stroke-width="1.2" stroke-linecap="round" />
                     
                     <!-- Center Pin -->
-                    <circle cx="50" cy="50" r="2" fill="#f0b429" />
+                    <circle cx="50" cy="50" r="3" fill="var(--primary)" />
+                    <circle cx="50" cy="50" r="1.5" fill="var(--bg-main)" />
                 </svg>
             </div>
 
@@ -2370,10 +2300,6 @@ const _hmFmt     = new Intl.DateTimeFormat('fa-IR', { timeZone: TEHRAN_TZ, hour:
 const _secFmt    = new Intl.DateTimeFormat('en-GB', { timeZone: TEHRAN_TZ, second: '2-digit' });
 const _dateFmt   = new Intl.DateTimeFormat('fa-IR', { timeZone: TEHRAN_TZ, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-/* circumference of the seconds arc. Chrome reports 286.05 for r=45.6, not the
-   textbook 2*PI*r = 286.51, so calibrate against the real path length. */
-let SEC_ARC_LEN = 286.51;
-
 function getCurrentTimeStr() {
     return _timeFmt.format(new Date());
 }
@@ -2411,7 +2337,7 @@ function tickTehranClock() {
     }
 }
 
-// Remove calibrateSecondsArc since we don't use wcSecArc anymore
+// عقربه‌های ساعت آنالوگ در tickTehranClock چرخانده می‌شوند؛ رنگ‌ها از CSS تم می‌آیند.
 tickTehranClock();
 setInterval(tickTehranClock, 1000);
 
@@ -2652,61 +2578,10 @@ let isDarkMode = localStorage.getItem('poolham_dark_mode') === 'true';
 let mainChartInstance = null;
 
 function updateClockTheme() {
+    // ساعت آنالوگ جدید مستقیم با متغیرهای CSS تم (--card-bg و --primary و ...) رنگ می‌گیرد؛
+    // فقط فیلتر inline قدیمی را پاک می‌کنیم تا CSS کنترل کامل داشته باشد.
     const clock = document.getElementById('wood-clock');
-    if (!clock) return;
-
-    const ringsEl = document.getElementById('wcRings');
-    const faceEl = document.getElementById('wcFace');
-    const grainCircle = clock.querySelectorAll('circle')[1];
-    const cityText = clock.querySelector('text[direction="rtl"]');
-    const tickGroup = clock.querySelector('g[stroke-linecap="round"]');
-
-    if (uiStyle === 'wood') {
-        // حالت طبیعی چوب بلوط
-        if (ringsEl) {
-            ringsEl.innerHTML = `
-                <stop offset="0"    stop-color="#dcb37e"/>
-                <stop offset="0.26" stop-color="#a87a45"/>
-                <stop offset="0.53" stop-color="#cda26a"/>
-                <stop offset="0.72" stop-color="#c99e66"/>
-                <stop offset="1"    stop-color="#5f3f22"/>
-            `;
-        }
-        if (faceEl) {
-            faceEl.innerHTML = `
-                <stop offset="0"    stop-color="#3a2919"/>
-                <stop offset="0.55" stop-color="#22180f"/>
-                <stop offset="1"    stop-color="#100b06"/>
-            `;
-        }
-        if (grainCircle) grainCircle.setAttribute('opacity', '0.55');
-        if (cityText) cityText.setAttribute('fill', '#d8b184');
-        if (tickGroup) tickGroup.setAttribute('stroke', '#ffe9c4');
-        clock.style.filter = 'drop-shadow(0 7px 16px rgba(58, 34, 10, .38))';
-        return;
-    }
-
-    const t = colorThemes[currentTheme] || colorThemes.purple;
-    if (ringsEl && t.clockBezel) {
-        ringsEl.innerHTML = `
-            <stop offset="0"    stop-color="${t.clockBezel[0]}"/>
-            <stop offset="0.30" stop-color="${t.clockBezel[1]}"/>
-            <stop offset="0.70" stop-color="${t.clockBezel[0]}"/>
-            <stop offset="1"    stop-color="${t.clockBezel[2] || t.clockBezel[0]}"/>
-        `;
-    }
-    if (faceEl && t.clockFace) {
-        faceEl.innerHTML = `
-            <stop offset="0"    stop-color="${t.clockFace[0]}"/>
-            <stop offset="1"    stop-color="${t.clockFace[1]}"/>
-        `;
-    }
-    if (grainCircle) grainCircle.setAttribute('opacity', '0.20');
-    if (cityText && t.clockTicks) cityText.setAttribute('fill', t.clockTicks);
-    if (tickGroup && t.clockTicks) tickGroup.setAttribute('stroke', t.clockTicks);
-    if (t.clockGlow) {
-        clock.style.filter = `drop-shadow(0 8px 22px ${t.clockGlow})`;
-    }
+    if (clock) clock.style.filter = '';
 }
 
 function applyColorTheme(themeKey, skipRender = false) {
