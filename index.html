@@ -689,6 +689,116 @@ body.galaxy-ui .ui-style-opt.active {
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 40%, transparent);
 }
 
+/* CYBERPUNK UI */
+body.cyberpunk-ui {
+    --card-bg:        #0d0d0d !important;
+    --hover-bg:       #1a1a1a !important;
+    --input-bg:       #000000 !important;
+    --border-color:   #ff00ff !important;
+    --bg-main:        #000000 !important;
+    --bg-right:       #0a0a0a !important;
+    --text-main:      #00ffff !important;
+    --text-muted:     #ff00ff !important;
+    --glass-shadow:   0 0 10px rgba(255, 0, 255, 0.4), inset 0 0 5px rgba(0, 255, 255, 0.2);
+    font-family: 'Courier New', Courier, monospace !important;
+}
+body.cyberpunk-ui.dark-theme {
+    --card-bg:        #050505 !important;
+    --hover-bg:       #111111 !important;
+    --input-bg:       #000000 !important;
+    --border-color:   #00ffff !important;
+    --bg-main:        #000000 !important;
+    --bg-right:       #030303 !important;
+    --text-main:      #ff00ff !important;
+    --text-muted:     #00ffff !important;
+    --glass-shadow:   0 0 10px rgba(0, 255, 255, 0.4), inset 0 0 5px rgba(255, 0, 255, 0.2);
+}
+body.cyberpunk-ui * { border-radius: 0 !important; }
+body.cyberpunk-ui .clean-card, body.cyberpunk-ui aside, body.cyberpunk-ui .input {
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--glass-shadow) !important;
+}
+body.cyberpunk-ui button, body.cyberpunk-ui .theme-btn {
+    border: 1px solid var(--text-main) !important;
+    box-shadow: 0 0 8px var(--text-main) !important;
+    border-radius: 0 !important;
+}
+
+/* NEUMORPHISM UI */
+body.neumorphism-ui {
+    --card-bg:        #e0e5ec !important;
+    --hover-bg:       #d1d9e6 !important;
+    --input-bg:       #e0e5ec !important;
+    --border-color:   transparent !important;
+    --bg-main:        #e0e5ec !important;
+    --bg-right:       #e0e5ec !important;
+    --text-main:      #4a5568 !important;
+    --text-muted:     #718096 !important;
+    --neu-shadow:     7px 7px 14px rgb(163,177,198,0.6), -7px -7px 14px rgba(255,255,255, 0.7);
+    --neu-inset:      inset 5px 5px 10px rgba(163,177,198, 0.6), inset -5px -5px 10px rgba(255,255,255, 0.8);
+}
+body.neumorphism-ui.dark-theme {
+    --card-bg:        #2d3748 !important;
+    --hover-bg:       #1a202c !important;
+    --input-bg:       #2d3748 !important;
+    --border-color:   transparent !important;
+    --bg-main:        #2d3748 !important;
+    --bg-right:       #2d3748 !important;
+    --text-main:      #e2e8f0 !important;
+    --text-muted:     #a0aec0 !important;
+    --neu-shadow:     7px 7px 14px rgba(0,0,0,0.3), -7px -7px 14px rgba(74,85,104, 0.3);
+    --neu-inset:      inset 5px 5px 10px rgba(0,0,0,0.4), inset -5px -5px 10px rgba(74,85,104, 0.4);
+}
+body.neumorphism-ui .clean-card, body.neumorphism-ui aside {
+    box-shadow: var(--neu-shadow) !important;
+    border: none !important;
+    background: var(--card-bg) !important;
+}
+body.neumorphism-ui .input, body.neumorphism-ui button, body.neumorphism-ui .theme-btn {
+    box-shadow: var(--neu-shadow) !important;
+    border: none !important;
+    background: var(--card-bg) !important;
+}
+body.neumorphism-ui .input:focus, body.neumorphism-ui button:active {
+    box-shadow: var(--neu-inset) !important;
+}
+body.neumorphism-ui .fixed.bottom-4.right-4 button {
+    box-shadow: var(--neu-shadow) !important;
+}
+
+/* PIXEL UI */
+body.pixel-ui {
+    --card-bg:        #f3f4f6 !important;
+    --hover-bg:       #e5e7eb !important;
+    --input-bg:       #ffffff !important;
+    --border-color:   #000000 !important;
+    --bg-main:        #dfdfdf !important;
+    --bg-right:       #d1d5db !important;
+    --text-main:      #000000 !important;
+    --text-muted:     #374151 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-weight: 900;
+}
+body.pixel-ui.dark-theme {
+    --card-bg:        #374151 !important;
+    --hover-bg:       #4b5563 !important;
+    --input-bg:       #1f2937 !important;
+    --border-color:   #ffffff !important;
+    --bg-main:        #111827 !important;
+    --bg-right:       #1f2937 !important;
+    --text-main:      #ffffff !important;
+    --text-muted:     #d1d5db !important;
+}
+body.pixel-ui * { border-radius: 0 !important; }
+body.pixel-ui .clean-card, body.pixel-ui aside, body.pixel-ui .input, body.pixel-ui button, body.pixel-ui .theme-btn {
+    border: 3px solid var(--border-color) !important;
+    box-shadow: 4px 4px 0px var(--border-color) !important;
+}
+body.pixel-ui button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px var(--border-color) !important;
+}
+
 /* --- glass picker inside the settings modal --------------------------- */
 .ui-style-opt {
     display: flex;
@@ -1038,28 +1148,21 @@ body.glass-ui .tab-btn {
                         <line x1="50" y1="7" x2="50" y2="10" transform="rotate(330 50 50)"/>
                     </g>
 
-                    <!-- brass seconds arc: r=45.6 -> circumference 286.51.
-                         Dash LENGTH is set directly by JS (dasharray="len rest"),
-                         with dashoffset pinned to 0 — using dashoffset to express
-                         progress depends on which way the engine shifts the
-                         pattern, and it silently rendered a quarter arc. -->
-                    <circle id="wcSecArc" cx="50" cy="50" r="45.6" fill="none" stroke="#ffc233"
-                            stroke-width="2.6" stroke-linecap="round" transform="rotate(-90 50 50)"
-                            stroke-dasharray="0 286.51" stroke-dashoffset="0"/>
-
                     <!-- recessed face -->
                     <circle cx="50" cy="50" r="35" fill="url(#wcFace)"/>
                     <circle cx="50" cy="50" r="35" fill="none" stroke="#000000" stroke-opacity="0.75" stroke-width="1.5"/>
                     <circle cx="50" cy="50" r="34.1" fill="none" stroke="#f0d3a4" stroke-opacity="0.14" stroke-width="0.7"/>
 
-                    <!-- digital readout -->
-                    <text x="50" y="32.5" text-anchor="middle" font-size="7.8" font-weight="700"
-                          fill="#d8b184" fill-opacity="0.92" letter-spacing="0.3" direction="rtl">تهران</text>
-                    <text id="wcTime" x="50" y="50" text-anchor="middle" dominant-baseline="central"
-                          font-size="19" font-weight="700" fill="#fbeed6" letter-spacing="-0.6"
-                          direction="ltr">--:--</text>
-                    <text id="wcSec" x="50" y="63.5" text-anchor="middle" dominant-baseline="central"
-                          font-size="9" font-weight="700" fill="#f0b429" direction="ltr">--</text>
+                    <!-- Logo Background inside clock -->
+                    <image href="./icons/icon-192.png" x="25" y="25" width="50" height="50" opacity="0.3" />
+
+                    <!-- Analog Hands -->
+                    <line id="wcHourHand" x1="50" y1="50" x2="50" y2="30" stroke="#fbeed6" stroke-width="2.5" stroke-linecap="round" />
+                    <line id="wcMinHand" x1="50" y1="50" x2="50" y2="20" stroke="#d8b184" stroke-width="1.5" stroke-linecap="round" />
+                    <line id="wcSecHand" x1="50" y1="50" x2="50" y2="18" stroke="#f0b429" stroke-width="0.8" stroke-linecap="round" />
+                    
+                    <!-- Center Pin -->
+                    <circle cx="50" cy="50" r="2" fill="#f0b429" />
                 </svg>
             </div>
 
@@ -2100,6 +2203,21 @@ MODALS
                     <span class="text-[11px] font-bold text-[var(--text-main)] truncate">کهکشانی 🚀</span>
                     <span class="text-[9px] text-[var(--text-muted)] leading-4 truncate">حرکت سیاره‌ها</span>
                 </button>
+                <button type="button" class="ui-style-opt" data-style="cyberpunk" onclick="setUIStyle('cyberpunk')">
+                    <span class="swatch swatch-cyberpunk" style="background: #000; border: 1px solid #f0f;"></span>
+                    <span class="text-[11px] font-bold text-[var(--text-main)] truncate">سایبرپانک 🌃</span>
+                    <span class="text-[9px] text-[var(--text-muted)] leading-4 truncate">نئون و درخشان</span>
+                </button>
+                <button type="button" class="ui-style-opt" data-style="neumorphism" onclick="setUIStyle('neumorphism')">
+                    <span class="swatch swatch-neumorphism" style="background: #e0e5ec; box-shadow: inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff;"></span>
+                    <span class="text-[11px] font-bold text-[var(--text-main)] truncate">نئومورفیسم 🤍</span>
+                    <span class="text-[9px] text-[var(--text-muted)] leading-4 truncate">برجسته و مینیمال</span>
+                </button>
+                <button type="button" class="ui-style-opt" data-style="pixel" onclick="setUIStyle('pixel')">
+                    <span class="swatch swatch-pixel" style="background: #ccc; border: 2px solid #000; box-shadow: 2px 2px 0 #000;"></span>
+                    <span class="text-[11px] font-bold text-[var(--text-main)] truncate">پیکسلی 👾</span>
+                    <span class="text-[9px] text-[var(--text-muted)] leading-4 truncate">رترو و ۸-بیتی</span>
+                </button>
             </div>
             <p class="text-[10px] text-[var(--text-muted)] leading-5">
                 انتخاب تو ذخیره می‌شود؛ با دکمهٔ کنار نوار کناری هم می‌توانی بین حالت‌ها بچرخی.
@@ -2264,20 +2382,25 @@ let _lastTehranDate = '';
 function tickTehranClock() {
     const now = new Date();
 
-    const timeEl = document.getElementById('wcTime');
-    if (timeEl) timeEl.textContent = toPersianNum(_hmFmt.format(now));
-
+    const hr = Number(new Intl.DateTimeFormat('en-US', { timeZone: TEHRAN_TZ, hour: 'numeric', hour12: false }).format(now)) || 0;
+    const min = Number(new Intl.DateTimeFormat('en-US', { timeZone: TEHRAN_TZ, minute: 'numeric' }).format(now)) || 0;
     const sec = Number(_secFmt.format(now)) || 0;
-    const secEl = document.getElementById('wcSec');
-    if (secEl) secEl.textContent = toPersianNum(String(sec).padStart(2, '0'));
 
-    const arc = document.getElementById('wcSecArc');
-    if (arc) {
-        // Express progress as the dash LENGTH, keeping the offset at 0. Using
-        // dashoffset instead depends on which direction the engine shifts the
-        // pattern, which rendered a ~quarter arc instead of the real sweep.
-        const len = SEC_ARC_LEN * (sec / 60);
-        arc.setAttribute('stroke-dasharray', len.toFixed(2) + ' ' + SEC_ARC_LEN.toFixed(2));
+    const hourHand = document.getElementById('wcHourHand');
+    const minHand = document.getElementById('wcMinHand');
+    const secHand = document.getElementById('wcSecHand');
+
+    if (hourHand) {
+        const hDeg = ((hr % 12) + min / 60) * 30; // 360 / 12 = 30
+        hourHand.setAttribute('transform', `rotate(${hDeg} 50 50)`);
+    }
+    if (minHand) {
+        const mDeg = min * 6; // 360 / 60 = 6
+        minHand.setAttribute('transform', `rotate(${mDeg} 50 50)`);
+    }
+    if (secHand) {
+        const sDeg = sec * 6;
+        secHand.setAttribute('transform', `rotate(${sDeg} 50 50)`);
     }
 
     const dStr = _dateFmt.format(now);
@@ -2288,13 +2411,7 @@ function tickTehranClock() {
     }
 }
 
-(function calibrateSecondsArc() {
-    const arc = document.getElementById('wcSecArc');
-    if (!arc || typeof arc.getTotalLength !== 'function') return;
-    const len = arc.getTotalLength();
-    if (len > 0) SEC_ARC_LEN = len;
-})();
-
+// Remove calibrateSecondsArc since we don't use wcSecArc anymore
 tickTehranClock();
 setInterval(tickTehranClock, 1000);
 
@@ -2649,15 +2766,18 @@ function syncThemeColorMeta() {
 }
 
 function applyUIStyle(styleKey, skipIcons = false) {
-    uiStyle = ['glass', 'wood', 'paper', 'midnight', 'galaxy'].includes(styleKey) ? styleKey : 'classic';
+    uiStyle = ['glass', 'wood', 'paper', 'midnight', 'galaxy', 'cyberpunk', 'neumorphism', 'pixel'].includes(styleKey) ? styleKey : 'classic';
     localStorage.setItem('poolham_ui_style', uiStyle);
 
     // چوبی، نیمه‌شب و کهکشانی بر پایهٔ لیکویید گلس‌اند
-    document.body.classList.toggle('glass-ui', uiStyle === 'glass' || uiStyle === 'wood' || uiStyle === 'midnight' || uiStyle === 'galaxy');
+    document.body.classList.toggle('glass-ui', uiStyle === 'glass' || uiStyle === 'wood' || uiStyle === 'midnight' || uiStyle === 'galaxy' || uiStyle === 'cyberpunk');
     document.body.classList.toggle('wood-ui', uiStyle === 'wood');
     document.body.classList.toggle('paper-ui', uiStyle === 'paper');
     document.body.classList.toggle('midnight-ui', uiStyle === 'midnight');
     document.body.classList.toggle('galaxy-ui', uiStyle === 'galaxy');
+    document.body.classList.toggle('cyberpunk-ui', uiStyle === 'cyberpunk');
+    document.body.classList.toggle('neumorphism-ui', uiStyle === 'neumorphism');
+    document.body.classList.toggle('pixel-ui', uiStyle === 'pixel');
 
     const btn = document.getElementById('glass-toggle-btn');
     if (btn) btn.classList.toggle('glass-active', uiStyle !== 'classic');
@@ -2691,8 +2811,8 @@ function setUIStyle(key) {
 }
 
 function toggleGlassUI() {
-    // چرخش بین شش حالت
-    const order = ['classic', 'glass', 'wood', 'paper', 'midnight', 'galaxy'];
+    // چرخش بین تمام حالت‌ها
+    const order = ['classic', 'glass', 'wood', 'paper', 'midnight', 'galaxy', 'cyberpunk', 'neumorphism', 'pixel'];
     const i = order.indexOf(uiStyle);
     setUIStyle(order[(i + 1) % order.length]);
 }
@@ -4972,12 +5092,15 @@ function saveAndRender(){
     if (!h) return;
     if (h.includes('dark'))  { isDarkMode = true;  localStorage.setItem('poolham_dark_mode', 'true'); }
     if (h.includes('light')) { isDarkMode = false; localStorage.setItem('poolham_dark_mode', 'false'); }
-    if (h.includes('glass'))     { uiStyle = 'glass';     localStorage.setItem('poolham_ui_style', 'glass'); }
-    if (h.includes('classic'))   { uiStyle = 'classic';   localStorage.setItem('poolham_ui_style', 'classic'); }
-    if (h.includes('paper'))     { uiStyle = 'paper';     localStorage.setItem('poolham_ui_style', 'paper'); }
-    if (h.includes('midnight'))  { uiStyle = 'midnight';  localStorage.setItem('poolham_ui_style', 'midnight'); }
-    if (h.includes('galaxy'))    { uiStyle = 'galaxy';    localStorage.setItem('poolham_ui_style', 'galaxy'); }
-    if (h.includes('wood'))      { uiStyle = 'wood';      localStorage.setItem('poolham_ui_style', 'wood'); }
+    if (h.includes('glass'))       { uiStyle = 'glass';       localStorage.setItem('poolham_ui_style', 'glass'); }
+    if (h.includes('classic'))     { uiStyle = 'classic';     localStorage.setItem('poolham_ui_style', 'classic'); }
+    if (h.includes('paper'))       { uiStyle = 'paper';       localStorage.setItem('poolham_ui_style', 'paper'); }
+    if (h.includes('midnight'))    { uiStyle = 'midnight';    localStorage.setItem('poolham_ui_style', 'midnight'); }
+    if (h.includes('galaxy'))      { uiStyle = 'galaxy';      localStorage.setItem('poolham_ui_style', 'galaxy'); }
+    if (h.includes('wood'))        { uiStyle = 'wood';        localStorage.setItem('poolham_ui_style', 'wood'); }
+    if (h.includes('cyberpunk'))   { uiStyle = 'cyberpunk';   localStorage.setItem('poolham_ui_style', 'cyberpunk'); }
+    if (h.includes('neumorphism')) { uiStyle = 'neumorphism'; localStorage.setItem('poolham_ui_style', 'neumorphism'); }
+    if (h.includes('pixel'))       { uiStyle = 'pixel';       localStorage.setItem('poolham_ui_style', 'pixel'); }
 })();
 
 initAllShamsiSelectors();
